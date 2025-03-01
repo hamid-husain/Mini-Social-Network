@@ -5,7 +5,7 @@ PKG=./...
 MIGRATIONS_DIR=db/migrations
 
 GOLANGCI_LINT=golangci-lint
-GOOSE=goose
+GOOSE=cmd/goose
 
 install:
 	go mod tidy
@@ -25,3 +25,17 @@ fmt:
 
 test:
 	go test -v $(PKG)
+
+migrate-up:
+	$(GOOSE) up
+
+migrate-down:
+	$(GOOSE) down
+
+migrate-create:
+	$(GOOSE) create $(name)
+
+migrate-status:
+	$(GOOSE) status
+
+
