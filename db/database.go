@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"log"
-	"project/config"
+	"mini-social-network/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

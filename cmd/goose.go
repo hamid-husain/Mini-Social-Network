@@ -6,10 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"mini-social-network/config"
 	"os"
-	"project/config"
 
-	_ "project/db/migrations"
+	_ "mini-social-network/db/migrations"
 
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
@@ -22,7 +22,7 @@ var (
 func main() {
 	flags.Parse(os.Args[1:])
 	args := flags.Args()
-	fmt.Println(len(args))
+
 	if len(args) < 1 {
 		flags.Usage()
 		return
@@ -54,8 +54,8 @@ func main() {
 	}()
 
 	arguments := []string{}
-	if len(args) > 2 {
-		arguments = append(arguments, args[2:]...)
+	if len(args) > 1 {
+		arguments = append(arguments, args[1:]...)
 	}
 
 	ctx := context.Background()
