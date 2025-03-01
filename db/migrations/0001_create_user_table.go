@@ -37,6 +37,14 @@ func upCreateUser(ctx context.Context, tx *sql.Tx) error {
 
 func downCreateUser(ctx context.Context, tx *sql.Tx) error {
 
+	_, err := tx.Exec(`
+		DROP TYPE IF EXISTS gender;
+		DROP TYPE IF EXISTS marital_status;
+	`)
+	if err != nil {
+		return err
+	}
+
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: tx,
 	}), &gorm.Config{})
