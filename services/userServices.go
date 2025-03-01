@@ -44,3 +44,27 @@ func FindUsers() ([]users.User, error) {
 	result := db.DB.Find(&userList)
 	return userList, result.Error
 }
+
+func UpdateUser(user *users.User) error {
+	if err := db.DB.Save(user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveOfficeDetails(office *users.OfficeDetail) error {
+	if err := db.DB.Create(office).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveResidentialDetail(resident *users.ResidentialDetail) error {
+	if err := db.DB.Create(resident).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

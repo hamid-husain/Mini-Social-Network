@@ -12,7 +12,8 @@ import (
 )
 
 func CreateUser(c *gin.Context) {
-	var req serializers.CreateUser
+	var req serializers.SignUpRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -21,11 +22,11 @@ func CreateUser(c *gin.Context) {
 	user := users.User{
 		User: baseModel.User{
 			Email:         req.Email,
-			FirstName:     req.FirstName,
-			LastName:      req.LastName,
-			DateOfBirth:   req.DateOfBirth,
-			Gender:        req.Gender,
-			MaritalStatus: req.MaritalStatus,
+			FirstName:     req.UserDetails.FirstName,
+			LastName:      req.UserDetails.LastName,
+			DateOfBirth:   req.UserDetails.DateOfBirth,
+			Gender:        req.UserDetails.Gender,
+			MaritalStatus: req.UserDetails.MaritalStatus,
 			Password:      req.Password,
 		},
 	}
@@ -35,13 +36,67 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	office := users.OfficeDetail{
+		OfficeDetail: baseModel.OfficeDetail{
+			UserID:        user.ID,
+			EmployeeCode:  req.UserDetails.OfficeDetails.EmployeeCode,
+			Address:       req.UserDetails.OfficeDetails.Address,
+			City:          req.UserDetails.OfficeDetails.City,
+			State:         req.UserDetails.OfficeDetails.State,
+			Country:       req.UserDetails.OfficeDetails.Country,
+			ContactNumber: req.UserDetails.OfficeDetails.ContactNo,
+			Email:         req.UserDetails.OfficeDetails.Email,
+			Name:          req.UserDetails.OfficeDetails.Name,
+		},
+	}
+
+	if err := services.SaveOfficeDetails(&office); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	resident := users.ResidentialDetail{
+		ResidentialDetail: baseModel.ResidentialDetail{
+			UserID:         user.ID,
+			Address:        req.UserDetails.ResidentialDetails.Address,
+			City:           req.UserDetails.ResidentialDetails.City,
+			State:          req.UserDetails.ResidentialDetails.State,
+			Country:        req.UserDetails.ResidentialDetails.Country,
+			ContactNumber1: req.UserDetails.ResidentialDetails.ContactNo1,
+			ContactNumber2: req.UserDetails.ResidentialDetails.ContactNo2,
+		},
+	}
+
+	if err := services.SaveResidentialDetail(&resident); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var officeDetails []users.OfficeDetail
+	var residentialDetails []users.ResidentialDetail
+
+	officeDetails = append(officeDetails, office)
+	residentialDetails = append(residentialDetails, resident)
+
+	if err := services.UpdateUser(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user with office and residential details"})
+		return
+	}
+
 	token, expiryTime, err := utils.GenerateJWT(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	userResponse := serializers.SerializeUser(user)
+	userResponse := serializers.SerializeResponse(user, resident, office)
 	tokenResponse := serializers.SerializeToken(token, expiryTime)
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "token": tokenResponse, "user": userResponse})
+	c.JSON(http.StatusCreated, gin.H{
+		"id":            user.ID,
+		"user_id":       user.ID,
+		"email":         user.Email,
+		"last_modified": user.UpdatedAt,
+		"user_details":  userResponse,
+		"token":         tokenResponse,
+	})
 }
