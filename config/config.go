@@ -14,6 +14,7 @@ type Config struct {
 	DBName     string
 	DBSSLMode  string
 	ServerPort string
+	SecretKey  string
 }
 
 var AppConfig Config
@@ -34,6 +35,7 @@ func LoadConfig() {
 		DBName:     viper.GetString("DB_NAME"),
 		DBSSLMode:  viper.GetString("DB_SSL"),
 		ServerPort: viper.GetString("SERVER_PORT"),
+		SecretKey:  viper.GetString("SECRET_KEY"),
 	}
 
 	log.Printf("Config Loaded: %+v\n", AppConfig)
