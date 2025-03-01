@@ -1,13 +1,14 @@
 package utils
 
 import (
-	"mini-social-network/config"
-	"time"
-
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
+
+	"time"
+
+	"mini-social-network/config"
 )
 
 func HashPassword(password string) (string, error) {

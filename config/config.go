@@ -14,6 +14,7 @@ type Config struct {
 	DBName        string
 	DBSSLMode     string
 	ServerPort    string
+	SecretKey  string
 	MigrationsDir string
 }
 
@@ -35,6 +36,7 @@ func LoadConfig() {
 		DBName:        viper.GetString("DB_NAME"),
 		DBSSLMode:     viper.GetString("DB_SSL"),
 		ServerPort:    viper.GetString("SERVER_PORT"),
+		SecretKey:  viper.GetString("SECRET_KEY"),
 		MigrationsDir: viper.GetString("MIGRATION_DIR"),
 	}
 
