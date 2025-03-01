@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"project/api/routes"
-	"project/config"
-	"project/db"
+	"mini-social-network/config"
+	"mini-social-network/db"
+	"mini-social-network/routes"
 
 	"github.com/gin-gonic/gin"
 )
