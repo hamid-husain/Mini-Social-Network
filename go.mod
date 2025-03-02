@@ -1,4 +1,4 @@
-module project
+module mini-social-network
 
 go 1.24.0
 
