@@ -14,7 +14,12 @@ func CreateUser(c *gin.Context) {
 	var req serializers.SignUpRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, utils.ParseValidationErrors(err))
+		return
+	}
+
+	if err := utils.ValidateDOB(req.UserDetails.DateOfBirth); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"date_of_birth": err.Error()}})
 		return
 	}
 
