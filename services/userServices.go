@@ -3,14 +3,14 @@ package services
 import (
 	"errors"
 	"mini-social-network/db"
-	"mini-social-network/models/users"
+	"mini-social-network/models"
 	"mini-social-network/utils"
 
 	"gorm.io/gorm"
 )
 
-func CreateUser(user *users.User) error {
-	var existingUser users.User
+func CreateUser(user *models.User) error {
+	var existingUser models.User
 	if err := db.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
 		return errors.New("email already in use")
 	}
@@ -28,8 +28,8 @@ func CreateUser(user *users.User) error {
 	return nil
 }
 
-func GetUserByEmail(email string) (*users.User, error) {
-	var user users.User
+func GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
 	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -39,13 +39,13 @@ func GetUserByEmail(email string) (*users.User, error) {
 	return &user, nil
 }
 
-func FindUsers() ([]users.User, error) {
-	var userList []users.User
+func FindUsers() ([]models.User, error) {
+	var userList []models.User
 	result := db.DB.Find(&userList)
 	return userList, result.Error
 }
 
-func UpdateUser(user *users.User) error {
+func UpdateUser(user *models.User) error {
 	if err := db.DB.Save(user).Error; err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func UpdateUser(user *users.User) error {
 	return nil
 }
 
-func SaveOfficeDetails(office *users.OfficeDetail) error {
+func SaveOfficeDetails(office *models.OfficeDetail) error {
 	if err := db.DB.Create(office).Error; err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func SaveOfficeDetails(office *users.OfficeDetail) error {
 	return nil
 }
 
-func SaveResidentialDetail(resident *users.ResidentialDetail) error {
+func SaveResidentialDetail(resident *models.ResidentialDetail) error {
 	if err := db.DB.Create(resident).Error; err != nil {
 		return err
 	}

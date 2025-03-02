@@ -1,7 +1,7 @@
 package serializers
 
 import (
-	"mini-social-network/models/users"
+	"mini-social-network/models"
 )
 
 type UserDetailsInput struct {
@@ -26,7 +26,7 @@ type userDetailsResponse struct {
 	OfficeDetails      OfficeDetailsResponse      `json:"office_details"`
 }
 
-func SerializeResponse(user users.User, resident users.ResidentialDetail, office users.OfficeDetail) userDetailsResponse {
+func SerializeResponse(user models.User, resident models.ResidentialDetail, office models.OfficeDetail) userDetailsResponse {
 	return userDetailsResponse{
 		ID:            user.ID,
 		Email:         user.Email,
