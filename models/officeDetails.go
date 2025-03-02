@@ -1,7 +1,9 @@
-package baseModel
+package models
+
+import "gorm.io/gorm"
 
 type OfficeDetail struct {
-	ID            uint   `gorm:"primaryKey"`
+	gorm.Model
 	UserID        uint   `gorm:"index"`
 	EmployeeCode  string `gorm:"type:varchar(6)"`
 	Address       string `gorm:"type:varchar(100)"`

@@ -3,7 +3,7 @@ package migrations
 import (
 	"context"
 	"database/sql"
-	"mini-social-network/models/baseModel"
+	"mini-social-network/db/baseModel"
 
 	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
