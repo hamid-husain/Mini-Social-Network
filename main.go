@@ -5,6 +5,7 @@ import (
 	"log"
 	"mini-social-network/config"
 	"mini-social-network/db"
+	"mini-social-network/middleware"
 	"mini-social-network/routes"
 	"mini-social-network/services"
 	"mini-social-network/utils"
