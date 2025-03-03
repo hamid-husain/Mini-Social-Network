@@ -9,6 +9,8 @@ import (
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"mini-social-network/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -179,4 +181,20 @@ func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) erro
 	}
 
 	return nil
+}
+
+func VerifyUserCredentials(email, password string) (*models.User, error) {
+	var user models.User
+	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		if err.Error() == "record not found" {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	return &user, nil
 }
