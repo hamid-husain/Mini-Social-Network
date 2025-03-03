@@ -18,6 +18,11 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	if err := utils.ValidateDOB(req.UserDetails.DateOfBirth); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": gin.H{"date_of_birth": err.Error()}})
+		return
+	}
+
 	user, office, resident, err := services.CreateUserWithDetails(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
