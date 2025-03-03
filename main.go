@@ -27,6 +27,8 @@ func main() {
 	router := gin.Default()
 
 	routes.APIRoutes(router, service)
+	router.Use(middleware.CORSMiddleware())
+
 
 	router.Use(middleware.CORSMiddleware())
 
