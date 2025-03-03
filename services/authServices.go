@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"mini-social-network/constants"
 	"mini-social-network/db"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
@@ -10,11 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUserWithDetails(req *serializers.SignUpRequest) (*models.User, *models.OfficeDetail, *models.ResidentialDetail, error) {
+func CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
 	tx := db.DB.Begin()
-	if tx.Error != nil {
-		return nil, nil, nil, tx.Error
-	}
 
 	user := models.User{
 		Email:         req.Email,
@@ -28,7 +26,7 @@ func CreateUserWithDetails(req *serializers.SignUpRequest) (*models.User, *model
 
 	if err := CreateUser(tx, &user); err != nil {
 		tx.Rollback()
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	office := models.OfficeDetail{
@@ -45,7 +43,7 @@ func CreateUserWithDetails(req *serializers.SignUpRequest) (*models.User, *model
 
 	if err := SaveOfficeDetails(tx, &office); err != nil {
 		tx.Rollback()
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	resident := models.ResidentialDetail{
@@ -60,25 +58,35 @@ func CreateUserWithDetails(req *serializers.SignUpRequest) (*models.User, *model
 
 	if err := SaveResidentialDetail(tx, &resident); err != nil {
 		tx.Rollback()
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	return &user, &office, &resident, nil
+	token, expiryTime, err := utils.GenerateJWT(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	userResponse := serializers.SerializeResponse(user, resident, office)
+	tokenResponse := serializers.SerializeToken(token, expiryTime)
+
+	response := serializers.SerializeSignUpResponse(user, userResponse, tokenResponse)
+
+	return &response, nil
 }
 
 func CreateUser(tx *gorm.DB, user *models.User) error {
 	var existingUser models.User
 	if err := tx.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
-		return errors.New("email already in use")
+		return errors.New(constants.ErrEmailAlreadyExists)
 	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return errors.New("failed to hash password")
+		return errors.New(constants.ErrFailedToHashPassword)
 	}
 	user.Password = hashedPassword
 
@@ -93,7 +101,7 @@ func GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found")
+			return nil, errors.New(constants.ErrUserNotFound)
 		}
 		return nil, err
 	}

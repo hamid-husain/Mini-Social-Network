@@ -1,11 +1,10 @@
 package utils
 
 import (
-	"errors"
 	"mini-social-network/config"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -38,7 +37,7 @@ func GenerateJWT(userID uint) (string, int64, error) {
 	return signedToken, expiryTime, nil
 }
 
-func ParseValidationErrors(err error) gin.H {
+func ParseValidationErrors(err error) map[string][]string {
 	validationErrors := make(map[string][]string)
 
 	if ve, ok := err.(validator.ValidationErrors); ok {
@@ -48,7 +47,7 @@ func ParseValidationErrors(err error) gin.H {
 			var errorMessage string
 			switch e.Tag() {
 			case "required":
-				errorMessage = fieldName + " cannot be left blank."
+				errorMessage = fieldName + " is required."
 			case "email":
 				errorMessage = "Please provide a valid email address."
 			case "min":
@@ -59,6 +58,8 @@ func ParseValidationErrors(err error) gin.H {
 				errorMessage = fieldName + " should be one of the following options: " + e.Param() + "."
 			case "e164":
 				errorMessage = fieldName + " should follow the international phone format."
+			case "valid_dob":
+				errorMessage = fieldName + " is not valid."
 			default:
 				errorMessage = fieldName + " is invalid."
 			}
@@ -67,17 +68,18 @@ func ParseValidationErrors(err error) gin.H {
 		}
 	}
 
-	return gin.H{"error:": validationErrors}
+	return validationErrors
 }
 
 const MaxAgeLimit = 100
 
-func ValidateDOB(dobStr string) error {
+func ValidateDOB(fl validator.FieldLevel) bool {
+	dobStr := fl.Field().String()
 	const layout = "2006-01-02"
 
 	dob, err := time.Parse(layout, dobStr)
 	if err != nil {
-		return errors.New("date of birth must be in YYYY-MM-DD format")
+		return false
 	}
 
 	today := time.Now()
@@ -88,8 +90,13 @@ func ValidateDOB(dobStr string) error {
 	}
 
 	if age > MaxAgeLimit {
-		return errors.New("date of birth must not be older than 100 years")
+		return false
 	}
 
-	return nil
+	return true
+}
+
+func RegisterCustomValidators(validate *validator.Validate) {
+	validatorEngine := binding.Validator.Engine().(*validator.Validate)
+	validatorEngine.RegisterValidation("valid_dob", ValidateDOB)
 }

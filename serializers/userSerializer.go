@@ -7,7 +7,7 @@ import (
 type UserDetailsInput struct {
 	FirstName          string                  `json:"first_name" binding:"required"`
 	LastName           string                  `json:"last_name"`
-	DateOfBirth        string                  `json:"date_of_birth" binding:"required"`
+	DateOfBirth        string                  `json:"date_of_birth" binding:"required,valid_dob"`
 	Gender             uint8                   `json:"gender" binding:"oneof=1 2 3"`
 	MaritalStatus      uint8                   `json:"marital_status" binding:"oneof=1 2"`
 	ResidentialDetails ResidentialDetailsInput `json:"residential_details"`
