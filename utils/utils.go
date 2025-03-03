@@ -69,10 +69,10 @@ func ParseValidationErrors(err error) gin.H {
 			errorMessages["residential_contact_1"] = "Primary contact number must be in valid E.164 format"
 		case strings.Contains(line, "UserDetails.ResidentialDetails.ContactNo2") && strings.Contains(line, "'e164' tag"):
 			errorMessages["residential_contact_2"] = "Secondary contact number must be in valid E.164 format"
-		case strings.Contains(line, "UserDetails.OfficeDetails.EmployeeCode"):
-			errorMessages["employee_code"] = "Employee code is required"
 		case strings.Contains(line, "UserDetails.OfficeDetails.EmployeeCode") && strings.Contains(line, "'max' tag"):
 			errorMessages["employee_code"] = "Employee code must be 6 characters long"
+		case strings.Contains(line, "UserDetails.OfficeDetails.EmployeeCode"):
+			errorMessages["employee_code"] = "Employee code is required"
 		case strings.Contains(line, "UserDetails.OfficeDetails.Address"):
 			errorMessages["office_address"] = "Office address is required"
 		case strings.Contains(line, "UserDetails.OfficeDetails.City"):
