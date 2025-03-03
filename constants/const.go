@@ -13,6 +13,7 @@ const (
 	ErrTokenExpired          = "token expired"
 	ErrInvalidPassword       = "invalid password"
 	ErrRecordNotFound        = "record not found"
+	ErrUnauthorized          = "access unauthorized"
 
 	ErrInvalidMaritalStatus = "invalid marital status value"
 	ErrInvalidGenderValue   = "invalid gender value"
