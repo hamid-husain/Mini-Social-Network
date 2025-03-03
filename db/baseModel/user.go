@@ -11,7 +11,7 @@ type User struct {
 	Gender             uint8               `gorm:"type:smallint;check:gender IN (1,2,3)"`
 	MaritalStatus      uint8               `gorm:"type:smallint;check:marital_status IN (1,2)"`
 	Password           string              `gorm:"type:varchar(255); not null"`
-	OfficeDetails      []OfficeDetail      `gorm:"foreignKey:UserID"`
-	ResidentialDetails []ResidentialDetail `gorm:"foreignKey:UserID"`
+	OfficeDetails      []OfficeDetail      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	ResidentialDetails []ResidentialDetail `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	Followers          []User              `gorm:"many2many:user_followers;joinForeignKey:UserID;joinReferences:FollowerID"`
 }

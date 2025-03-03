@@ -21,7 +21,7 @@ func upCreateUserTable(ctx context.Context, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	return db.Migrator().CreateTable(&baseModel.User{})
+	return db.AutoMigrate(&baseModel.User{})
 }
 
 func downCreateUserTable(ctx context.Context, tx *sql.Tx) error {

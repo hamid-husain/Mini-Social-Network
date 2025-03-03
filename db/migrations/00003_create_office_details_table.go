@@ -22,7 +22,7 @@ func upCreateOfficeDetailsTable(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	return db.Migrator().CreateTable(&baseModel.OfficeDetail{})
+	return db.AutoMigrate(&baseModel.OfficeDetail{})
 }
 
 func downCreateOfficeDetailsTable(ctx context.Context, tx *sql.Tx) error {

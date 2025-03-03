@@ -11,27 +11,25 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCreateResidentialDetailsTable, downCreateResidentialDetailsTable)
+	goose.AddMigrationContext(upCreateUserFollowingTable, downCreateUserFollowingTable)
 }
 
-func upCreateResidentialDetailsTable(ctx context.Context, tx *sql.Tx) error {
+func upCreateUserFollowingTable(ctx context.Context, tx *sql.Tx) error {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: tx,
 	}), &gorm.Config{})
 	if err != nil {
 		return err
 	}
-
-	return db.AutoMigrate(&baseModel.ResidentialDetail{})
+	return db.AutoMigrate(&baseModel.UserFollowing{})
 }
 
-func downCreateResidentialDetailsTable(ctx context.Context, tx *sql.Tx) error {
+func downCreateUserFollowingTable(ctx context.Context, tx *sql.Tx) error {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: tx,
 	}), &gorm.Config{})
 	if err != nil {
 		return err
 	}
-
-	return db.Migrator().DropTable(&baseModel.ResidentialDetail{})
+	return db.Migrator().DropTable(&baseModel.UserFollowing{})
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -42,7 +41,7 @@ func main() {
 		config.AppConfig.DBSSLMode,
 	)
 
-	db, err := sql.Open("postgres", dsn)
+	db, err := goose.OpenDBWithDriver("postgres", dsn)
 	if err != nil {
 		log.Fatalf("goose: failed to open DB: %v\n", err)
 	}
