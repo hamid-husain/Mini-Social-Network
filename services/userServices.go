@@ -4,14 +4,75 @@ import (
 	"errors"
 	"mini-social-network/db"
 	"mini-social-network/models"
+	"mini-social-network/serializers"
 	"mini-social-network/utils"
 
 	"gorm.io/gorm"
 )
 
-func CreateUser(user *models.User) error {
+func CreateUserWithDetails(req *serializers.SignUpRequest) (*models.User, *models.OfficeDetail, *models.ResidentialDetail, error) {
+	tx := db.DB.Begin()
+	if tx.Error != nil {
+		return nil, nil, nil, tx.Error
+	}
+
+	user := models.User{
+		Email:         req.Email,
+		FirstName:     req.UserDetails.FirstName,
+		LastName:      req.UserDetails.LastName,
+		DateOfBirth:   req.UserDetails.DateOfBirth,
+		Gender:        req.UserDetails.Gender,
+		MaritalStatus: req.UserDetails.MaritalStatus,
+		Password:      req.Password,
+	}
+
+	if err := CreateUser(tx, &user); err != nil {
+		tx.Rollback()
+		return nil, nil, nil, err
+	}
+
+	office := models.OfficeDetail{
+		UserID:        user.ID,
+		EmployeeCode:  req.UserDetails.OfficeDetails.EmployeeCode,
+		Address:       req.UserDetails.OfficeDetails.Address,
+		City:          req.UserDetails.OfficeDetails.City,
+		State:         req.UserDetails.OfficeDetails.State,
+		Country:       req.UserDetails.OfficeDetails.Country,
+		ContactNumber: req.UserDetails.OfficeDetails.ContactNo,
+		Email:         req.UserDetails.OfficeDetails.Email,
+		Name:          req.UserDetails.OfficeDetails.Name,
+	}
+
+	if err := SaveOfficeDetails(tx, &office); err != nil {
+		tx.Rollback()
+		return nil, nil, nil, err
+	}
+
+	resident := models.ResidentialDetail{
+		UserID:         user.ID,
+		Address:        req.UserDetails.ResidentialDetails.Address,
+		City:           req.UserDetails.ResidentialDetails.City,
+		State:          req.UserDetails.ResidentialDetails.State,
+		Country:        req.UserDetails.ResidentialDetails.Country,
+		ContactNumber1: req.UserDetails.ResidentialDetails.ContactNo1,
+		ContactNumber2: req.UserDetails.ResidentialDetails.ContactNo2,
+	}
+
+	if err := SaveResidentialDetail(tx, &resident); err != nil {
+		tx.Rollback()
+		return nil, nil, nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, nil, nil, err
+	}
+
+	return &user, &office, &resident, nil
+}
+
+func CreateUser(tx *gorm.DB, user *models.User) error {
 	var existingUser models.User
-	if err := db.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
+	if err := tx.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
 		return errors.New("email already in use")
 	}
 
@@ -21,7 +82,7 @@ func CreateUser(user *models.User) error {
 	}
 	user.Password = hashedPassword
 
-	if err := db.DB.Create(user).Error; err != nil {
+	if err := tx.Create(user).Error; err != nil {
 		return err
 	}
 
@@ -53,16 +114,16 @@ func UpdateUser(user *models.User) error {
 	return nil
 }
 
-func SaveOfficeDetails(office *models.OfficeDetail) error {
-	if err := db.DB.Create(office).Error; err != nil {
+func SaveOfficeDetails(tx *gorm.DB, office *models.OfficeDetail) error {
+	if err := tx.Create(office).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func SaveResidentialDetail(resident *models.ResidentialDetail) error {
-	if err := db.DB.Create(resident).Error; err != nil {
+func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) error {
+	if err := tx.Create(resident).Error; err != nil {
 		return err
 	}
 

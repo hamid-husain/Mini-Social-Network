@@ -14,7 +14,7 @@ type OfficeDetailsInput struct {
 type OfficeDetailsResponse struct {
 	ID           uint   `json:"id"`
 	UserID       uint   `json:"user_id"`
-	EmployeeCode string `json:"employee_code" binding:"required"`
+	EmployeeCode string `json:"employee_code" binding:"required, max=6"`
 	Address      string `json:"address" binding:"required"`
 	City         string `json:"city" binding:"required"`
 	State        string `json:"state" binding:"required"`
