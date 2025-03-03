@@ -18,7 +18,7 @@ func CreateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		validationErrorsMap := utils.ParseValidationErrors(err)
-		c.JSON(http.StatusBadRequest, gin.H{"errors": validationErrorsMap})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"errors": validationErrorsMap})
 		return
 	}
 
