@@ -9,4 +9,6 @@ const (
 	ErrFailedToGenerateToken = "failed to generate token"
 	ErrInternalServerError   = "internal server error"
 	ErrInvalidCredentials    = "Invalid email or password"
+	ErrInvalidToken          = "invalid token"
+	ErrTokenExpired          = "token expired"
 )

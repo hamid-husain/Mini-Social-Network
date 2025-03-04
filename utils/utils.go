@@ -6,9 +6,11 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 
+	"errors"
 	"time"
 
 	"mini-social-network/config"
+	"mini-social-network/constants"
 )
 
 func HashPassword(password string) (string, error) {
@@ -36,6 +38,36 @@ func GenerateJWT(userID uint) (string, int64, error) {
 	}
 
 	return signedToken, expiryTime, nil
+}
+
+func ValidateJWT(tokenString string) (uint, error) {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New(constants.ErrInvalidToken)
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return 0, errors.New(constants.ErrInvalidToken)
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		userID, ok := claims["user_id"].(float64)
+		if !ok {
+			return 0, errors.New(constants.ErrInvalidToken)
+		}
+
+		expiryTime, ok := claims["exp"].(float64)
+		if !ok || int64(expiryTime) < time.Now().Unix() {
+			return 0, errors.New(constants.ErrTokenExpired)
+		}
+
+		return uint(userID), nil
+	}
+
+	return 0, errors.New(constants.ErrInvalidToken)
 }
 
 func ParseValidationErrors(err error) map[string][]string {
