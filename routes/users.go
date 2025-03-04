@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"mini-social-network/controllers"
 	"mini-social-network/middleware"
 	"mini-social-network/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 func APIRoutes(router *gin.Engine, service *services.Service) {
