@@ -40,7 +40,7 @@ func Login(c *gin.Context) {
 	var req serializers.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.ParseValidationErrors(err))
+		c.JSON(http.StatusUnprocessableEntity, utils.ParseValidationErrors(err))
 		return
 	}
 
