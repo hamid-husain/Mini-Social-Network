@@ -1,12 +1,13 @@
 package db
 
 import (
-	"fmt"
-	"log"
-	"mini-social-network/config"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"fmt"
+	"log"
+
+	"mini-social-network/config"
 )
 
 var DB *gorm.DB
