@@ -8,4 +8,5 @@ const (
 	ErrFailedToHashPassword  = "failed to hash password"
 	ErrFailedToGenerateToken = "failed to generate token"
 	ErrInternalServerError   = "internal server error"
+	ErrInvalidCredentials    = "Invalid email or password"
 )

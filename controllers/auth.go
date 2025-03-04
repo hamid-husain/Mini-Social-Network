@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"net/http"
+	"time"
 
 	"mini-social-network/constants"
 	"mini-social-network/serializers"
@@ -45,15 +46,17 @@ func Login(c *gin.Context) {
 
 	user, err := services.VerifyUserCredentials(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidCredentials})
 		return
 	}
 
 	token, expiryTime, err := utils.GenerateJWT(user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToGenerateToken})
 		return
 	}
+
+	c.SetCookie("token", token, int(expiryTime-time.Now().Unix()), "/", "localhost", false, true)
 
 	userResponse := serializers.SerializeLoginResponse(*user)
 	tokenResponse := serializers.SerializeToken(token, expiryTime)
