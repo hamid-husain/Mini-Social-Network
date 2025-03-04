@@ -1,14 +1,15 @@
 package services
 
 import (
+	"gorm.io/gorm"
+
 	"errors"
+
 	"mini-social-network/constants"
 	"mini-social-network/db"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"mini-social-network/utils"
-
-	"gorm.io/gorm"
 )
 
 func CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {

@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"mini-social-network/services"
+	"github.com/gin-gonic/gin"
+
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"mini-social-network/services"
 )
 
 func ListUsers(c *gin.Context) {

@@ -1,19 +1,17 @@
 package controllers
 
 import (
+	"github.com/gin-gonic/gin"
+
+	"net/http"
+
+	"mini-social-network/constants"
 	"mini-social-network/serializers"
 	"mini-social-network/services"
 	"mini-social-network/utils"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 func CreateUser(c *gin.Context) {
-	validator := validator.New()
-	utils.RegisterCustomValidators(validator)
-
 	var req serializers.SignUpRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -24,7 +22,11 @@ func CreateUser(c *gin.Context) {
 
 	response, err := services.CreateUserWithDetails(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if err.Error() == constants.ErrEmailAlreadyExists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 

@@ -1,8 +1,9 @@
 package serializers
 
 import (
-	"mini-social-network/models"
 	"time"
+
+	"mini-social-network/models"
 )
 
 type SignUpRequest struct {
