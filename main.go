@@ -6,6 +6,7 @@ import (
 	"mini-social-network/config"
 	"mini-social-network/db"
 	"mini-social-network/routes"
+	"mini-social-network/services"
 	"mini-social-network/utils"
 
 	"github.com/gin-gonic/gin"
@@ -17,12 +18,14 @@ func main() {
 
 	db.ConnectDatabase()
 
+	service := services.NewService(db.DB)
+
 	validator := validator.New()
 	utils.RegisterCustomValidators(validator)
 
 	router := gin.Default()
 
-	routes.UsersRoutes(router)
+	routes.APIRoutes(router, service)
 
 	if err := router.Run(":" + config.AppConfig.ServerPort); err != nil {
 		log.Fatal("Failed to start server: ", err)

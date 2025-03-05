@@ -6,14 +6,21 @@ import (
 	"errors"
 
 	"mini-social-network/constants"
-	"mini-social-network/db"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"mini-social-network/utils"
 )
 
-func CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
-	tx := db.DB.Begin()
+type Service struct {
+	DB *gorm.DB
+}
+
+func NewService(db *gorm.DB) *Service {
+	return &Service{DB: db}
+}
+
+func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
+	tx := s.DB.Begin()
 
 	user := models.User{
 		Email:         req.Email,
@@ -98,9 +105,9 @@ func CreateUser(tx *gorm.DB, user *models.User) error {
 	return nil
 }
 
-func GetUserByEmail(email string) (*models.User, error) {
+func (s *Service) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := s.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(constants.ErrUserNotFound)
 		}
@@ -109,14 +116,14 @@ func GetUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func FindUsers() ([]models.User, error) {
+func (s *Service) FindUsers() ([]models.User, error) {
 	var userList []models.User
-	result := db.DB.Find(&userList)
+	result := s.DB.Find(&userList)
 	return userList, result.Error
 }
 
-func UpdateUser(user *models.User) error {
-	if err := db.DB.Save(user).Error; err != nil {
+func (s *Service) UpdateUser(user *models.User) error {
+	if err := s.DB.Save(user).Error; err != nil {
 		return err
 	}
 
