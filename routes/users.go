@@ -16,7 +16,7 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 		users.POST("/login", controllers.Login(service))
 	}
 
-	protected := router.Group("/users")
+	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/logout", controllers.Logout)
