@@ -131,7 +131,7 @@ func SerializeDeleteUserResponse(user models.User, userResponse UserDetailsRespo
 	}
 }
 
-func SerializeGetUserResponse(user models.User, userResponse userDetailsResponse) GetUserResponse {
+func SerializeGetUserResponse(user models.User, userResponse UserDetailsResponse) GetUserResponse {
 	return GetUserResponse{
 		ID:          user.ID,
 		UserID:      user.ID,
