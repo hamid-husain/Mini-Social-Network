@@ -46,7 +46,7 @@ type GetUserResponse struct {
 	UserID      uint                `json:"user_id"`
 	Email       string              `json:"email"`
 	UpdatedAt   time.Time           `json:"last_modified"`
-	UserDetails userDetailsResponse `json:"user_details"`
+	UserDetails UserDetailsResponse `json:"user_details"`
 }
 
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
