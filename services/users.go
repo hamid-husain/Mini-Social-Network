@@ -103,3 +103,53 @@ func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, 
 
 	return &response, nil
 }
+
+func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, error) {
+	tx := s.DB.Begin()
+
+	var user models.User
+	if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
+		tx.Rollback()
+		return nil, errors.New(constants.ErrUserNotFound)
+	}
+
+	if req.FirstName != "" {
+		user.FirstName = req.FirstName
+	}
+	if req.LastName != "" {
+		user.LastName = req.LastName
+	}
+	if req.Gender != 0 {
+		user.Gender = req.Gender
+	}
+	if req.DateOfBirth != "" {
+		user.DateOfBirth = req.DateOfBirth
+	}
+	if req.MaritalStatus != 0 {
+		user.MaritalStatus = req.MaritalStatus
+	}
+
+	if err := tx.Save(&user).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	var officeDetails []models.OfficeDetail
+	if err := s.DB.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
+		return nil, err
+	}
+
+	var residentialDetails []models.ResidentialDetail
+	if err := s.DB.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
+		return nil, err
+	}
+
+	userResponse := serializers.SerializeResponse(user, residentialDetails, officeDetails)
+	response := serializers.SerializeGetUserResponse(user, userResponse)
+
+	return &response, nil
+}

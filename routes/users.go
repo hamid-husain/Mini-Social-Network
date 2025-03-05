@@ -22,5 +22,6 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 		protected.DELETE("/delete", controllers.DeleteUser(service))
 		protected.GET("/get_details", controllers.GetUser(service))
 		protected.GET("/list", controllers.ListUsers(service))
+		protected.PATCH("/update", controllers.UpdateUser(service))
 	}
 }

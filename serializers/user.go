@@ -54,6 +54,14 @@ type ListUserResponse struct {
 	Email  string `json:"email"`
 }
 
+type UpdateUserRequest struct {
+	FirstName     string `json:"first_name,omitempty"`
+	LastName      string `json:"last_name,omitempty"`
+	DateOfBirth   string `json:"date_of_birth,omitempty" binding:"valid_dob"`
+	Gender        uint8  `json:"gender,omitempty"`
+	MaritalStatus uint8  `json:"marital_status,omitempty"`
+}
+
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
 	return UserLoginResponse{
 		ID:           user.ID,
@@ -131,7 +139,7 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 
 func SerializeDeleteUserResponse(user models.User, userResponse UserDetailsResponse) DeleteUserResponse {
 	return DeleteUserResponse{
-		Message: "User and associated details deleted successfully",
+		Message: constants.SuccessUserDeleted,
 		User:    userResponse,
 	}
 }

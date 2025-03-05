@@ -18,7 +18,8 @@ const (
 	ErrInvalidMaritalStatus = "invalid marital status value"
 	ErrInvalidGenderValue   = "invalid gender value"
 
-	SuccessLogOut = "Successfully logged out"
+	SuccessLogOut      = "Successfully logged out"
+	SuccessUserDeleted = "User deleted successfully"
 
 	DBHost       = "DB_HOST"
 	DBPort       = "DB_PORT"

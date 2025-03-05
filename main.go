@@ -29,9 +29,6 @@ func main() {
 	routes.APIRoutes(router, service)
 	router.Use(middleware.CORSMiddleware())
 
-
-	router.Use(middleware.CORSMiddleware())
-
 	if err := router.Run(":" + config.AppConfig.ServerPort); err != nil {
 		log.Fatal("Failed to start server: ", err)
 	} else {
