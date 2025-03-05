@@ -58,8 +58,8 @@ type UpdateUserRequest struct {
 	FirstName     string `json:"first_name,omitempty"`
 	LastName      string `json:"last_name,omitempty"`
 	DateOfBirth   string `json:"date_of_birth,omitempty" binding:"valid_dob"`
-	Gender        uint8  `json:"gender,omitempty"`
-	MaritalStatus uint8  `json:"marital_status,omitempty"`
+	Gender        string `json:"gender,omitempty" binding:"oneof=male female other"`
+	MaritalStatus string `json:"marital_status,omitempty" binding:"oneof=single married"`
 }
 
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {

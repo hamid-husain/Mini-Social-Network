@@ -119,14 +119,49 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 	if req.LastName != "" {
 		user.LastName = req.LastName
 	}
-	if req.Gender != 0 {
-		user.Gender = req.Gender
+	if req.Gender != "" {
+		var gender uint8
+		var err error
+
+		switch req.Gender {
+		case "male":
+			gender = 1
+		case "female":
+			gender = 2
+		case "other":
+			gender = 3
+		default:
+			err = errors.New("invalid gender value")
+		}
+
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		user.Gender = gender
 	}
+
 	if req.DateOfBirth != "" {
 		user.DateOfBirth = req.DateOfBirth
 	}
-	if req.MaritalStatus != 0 {
-		user.MaritalStatus = req.MaritalStatus
+	if req.MaritalStatus != "" {
+		var maritalStatus uint8
+		var err error
+
+		switch req.MaritalStatus {
+		case "single":
+			maritalStatus = 1
+		case "married":
+			maritalStatus = 2
+		default:
+			err = errors.New("invalid marital status value")
+		}
+
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		user.MaritalStatus = maritalStatus
 	}
 
 	if err := tx.Save(&user).Error; err != nil {
