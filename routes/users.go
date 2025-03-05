@@ -19,8 +19,8 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/logout", controllers.Logout)
-		protected.DELETE("/delete", controllers.DeleteUser)
-		protected.GET("/get_details", controllers.GetUser)
-		protected.GET("/list", controllers.ListUsers)
+		protected.DELETE("/delete", controllers.DeleteUser(service))
+		protected.GET("/get_details", controllers.GetUser(service))
+		protected.GET("/list", controllers.ListUsers(service))
 	}
 }

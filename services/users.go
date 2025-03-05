@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"mini-social-network/constants"
-	"mini-social-network/db"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"time"
@@ -11,19 +10,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetUserByID(userID uint) (*serializers.GetUserResponse, error) {
+func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, error) {
 	var user models.User
-	if err := db.DB.Where("id = ? AND deleted_at IS NULL", userID).First(&user).Error; err != nil {
+	if err := s.DB.Where("id = ? AND deleted_at IS NULL", userID).First(&user).Error; err != nil {
 		return nil, err
 	}
 
 	var officeDetails []models.OfficeDetail
-	if err := db.DB.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
+	if err := s.DB.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
 		return nil, err
 	}
 
 	var residentialDetails []models.ResidentialDetail
-	if err := db.DB.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
+	if err := s.DB.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
 		return nil, err
 	}
 
@@ -33,10 +32,10 @@ func GetUserByID(userID uint) (*serializers.GetUserResponse, error) {
 	return &response, nil
 }
 
-func ListUsers() ([]serializers.ListUserResponse, error) {
+func (s *Service) ListUsers() ([]serializers.ListUserResponse, error) {
 	var users []models.User
 
-	if err := db.DB.Find(&users).Error; err != nil {
+	if err := s.DB.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -45,8 +44,8 @@ func ListUsers() ([]serializers.ListUserResponse, error) {
 	return response, nil
 }
 
-func DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, error) {
-	tx := db.DB.Begin()
+func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, error) {
+	tx := s.DB.Begin()
 	var user models.User
 
 	defer func() {
