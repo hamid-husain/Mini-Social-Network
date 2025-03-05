@@ -6,19 +6,14 @@ import (
 	"mini-social-network/config"
 	"mini-social-network/db"
 	"mini-social-network/routes"
-	"mini-social-network/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 func main() {
 	config.LoadConfig()
 
 	db.ConnectDatabase()
-
-	validator := validator.New()
-	utils.RegisterCustomValidators(validator)
 
 	router := gin.Default()
 

@@ -3,7 +3,7 @@ package migrations
 import (
 	"context"
 	"database/sql"
-	"mini-social-network/db/baseModel"
+	"mini-social-network/db/base_model"
 
 	"github.com/pressly/goose/v3"
 	"gorm.io/driver/postgres"
@@ -22,7 +22,7 @@ func upCreateResidentialDetailsTable(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	return db.AutoMigrate(&baseModel.ResidentialDetail{})
+	return db.AutoMigrate(&base_model.ResidentialDetail{})
 }
 
 func downCreateResidentialDetailsTable(ctx context.Context, tx *sql.Tx) error {
@@ -33,5 +33,5 @@ func downCreateResidentialDetailsTable(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	return db.Migrator().DropTable(&baseModel.ResidentialDetail{})
+	return db.Migrator().DropTable(&base_model.ResidentialDetail{})
 }

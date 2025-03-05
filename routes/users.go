@@ -7,7 +7,7 @@ import (
 )
 
 func UsersRoutes(router *gin.Engine) {
-	users := router.Group("/users")
+	users := router.Group("/api")
 	{
 		users.GET("/", controllers.ListUsers)
 		users.POST("/create", controllers.CreateUser)

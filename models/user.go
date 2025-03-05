@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	Email              string              `gorm:"type:varchar(254);uniqueIndex; not null"`
+	Email              string              `gorm:"type:varchar(254);uniqueIndex:uniq_email,WHERE:deleted_at IS NULL; not null"`
 	FirstName          string              `gorm:"type:varchar(46); not null"`
 	LastName           string              `gorm:"type:varchar(46)"`
 	DateOfBirth        string              `gorm:"type:date; not null"`
