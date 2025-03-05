@@ -54,7 +54,7 @@ func DeleteUser(service *services.Service) gin.HandlerFunc {
 			return
 		}
 
-		c.SetCookie("token", "", -1, "/", "localhost", false, true)
+		c.SetCookie("token", "", -1, "/", constants.Domain, false, true)
 		c.JSON(http.StatusOK, response)
 	}
 }
