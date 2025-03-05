@@ -22,13 +22,46 @@ func NewService(db *gorm.DB) *Service {
 func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
 	tx := s.DB.Begin()
 
+	var gender, maritalStatus uint8
+	var err error
+
+	switch req.UserDetails.Gender {
+	case "male":
+		gender = 1
+	case "female":
+		gender = 2
+	case "other":
+		gender = 3
+	default:
+		err = errors.New("invalid gender value")
+	}
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	switch req.UserDetails.MaritalStatus {
+	case "single":
+		maritalStatus = 1
+	case "married":
+		maritalStatus = 2
+	default:
+		err = errors.New("invalid marital status value")
+	}
+
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	user := models.User{
 		Email:         req.Email,
 		FirstName:     req.UserDetails.FirstName,
 		LastName:      req.UserDetails.LastName,
 		DateOfBirth:   req.UserDetails.DateOfBirth,
-		Gender:        req.UserDetails.Gender,
-		MaritalStatus: req.UserDetails.MaritalStatus,
+		Gender:        gender,
+		MaritalStatus: maritalStatus,
 		Password:      req.Password,
 	}
 

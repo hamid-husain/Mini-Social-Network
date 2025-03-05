@@ -8,8 +8,8 @@ type UserDetailsInput struct {
 	FirstName          string                  `json:"first_name" binding:"required"`
 	LastName           string                  `json:"last_name"`
 	DateOfBirth        string                  `json:"date_of_birth" binding:"required,valid_dob"`
-	Gender             uint8                   `json:"gender" binding:"oneof=1 2 3"`
-	MaritalStatus      uint8                   `json:"marital_status" binding:"oneof=1 2"`
+	Gender             string                  `json:"gender" binding:"oneof=male female other"`
+	MaritalStatus      string                  `json:"marital_status" binding:"oneof=single married"`
 	ResidentialDetails ResidentialDetailsInput `json:"residential_details"`
 	OfficeDetails      OfficeDetailsInput      `json:"office_details"`
 }
@@ -20,8 +20,8 @@ type UserDetailsResponse struct {
 	FirstName          string                       `json:"first_name"`
 	LastName           string                       `json:"last_name,omitempty"`
 	DateOfBirth        string                       `json:"date_of_birth"`
-	Gender             uint8                        `json:"gender"`
-	MaritalStatus      uint8                        `json:"marital_status"`
+	Gender             string                       `json:"gender"`
+	MaritalStatus      string                       `json:"marital_status"`
 	ResidentialDetails []ResidentialDetailsResponse `json:"residential_details"`
 	OfficeDetails      []OfficeDetailsResponse      `json:"office_details"`
 }
@@ -57,14 +57,36 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 		})
 	}
 
+	var gender string
+	switch user.Gender {
+	case 1:
+		gender = "male"
+	case 2:
+		gender = "female"
+	case 3:
+		gender = "other"
+	default:
+		gender = "unknown"
+	}
+
+	var maritalStatus string
+	switch user.MaritalStatus {
+	case 1:
+		maritalStatus = "single"
+	case 2:
+		maritalStatus = "married"
+	default:
+		maritalStatus = "unknown"
+	}
+
 	return UserDetailsResponse{
 		ID:                 user.ID,
 		Email:              user.Email,
 		FirstName:          user.FirstName,
 		LastName:           user.LastName,
 		DateOfBirth:        user.DateOfBirth,
-		Gender:             user.Gender,
-		MaritalStatus:      user.MaritalStatus,
+		Gender:             gender,
+		MaritalStatus:      maritalStatus,
 		ResidentialDetails: residentialDetails,
 		OfficeDetails:      officeDetails,
 	}
