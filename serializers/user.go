@@ -35,6 +35,11 @@ type UserLoginResponse struct {
 	LastModified string `json:"last_modified"`
 }
 
+type DeleteUserResponse struct {
+	Message string              `json:"message"`
+	User    UserDetailsResponse `json:"user"`
+}
+
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
 	return UserLoginResponse{
 		ID:           user.ID,
@@ -107,5 +112,12 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 		MaritalStatus:      maritalStatus,
 		ResidentialDetails: residentialDetails,
 		OfficeDetails:      officeDetails,
+	}
+}
+
+func SerializeDeleteUserResponse(user models.User, userResponse UserDetailsResponse) DeleteUserResponse {
+	return DeleteUserResponse{
+		Message: "User and associated details deleted successfully",
+		User:    userResponse,
 	}
 }
