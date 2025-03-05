@@ -21,24 +21,35 @@ func ListUsers(service *services.Service) gin.HandlerFunc {
 	}
 }
 
-func DeleteUser(c *gin.Context) {
-	userID := c.Param("id")
-
-	_, err := services.GetUserByID(userID)
-	if err != nil {
-		if err.Error() == constants.ErrUserNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+func GetUser(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
-	response, err := services.DeleteUserByID(userID)
+	response, err := services.GetUserByID(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	c.JSON(http.StatusOK, response)
+}
+
+func DeleteUser(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	response, err := services.DeleteUserByID(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.SetCookie("token", "", -1, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, response)
 }

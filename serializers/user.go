@@ -3,6 +3,7 @@ package serializers
 import (
 	"mini-social-network/constants"
 	"mini-social-network/models"
+	"time"
 )
 
 type UserDetailsInput struct {
@@ -38,6 +39,14 @@ type UserLoginResponse struct {
 type DeleteUserResponse struct {
 	Message string              `json:"message"`
 	User    UserDetailsResponse `json:"user"`
+}
+
+type GetUserResponse struct {
+	ID          uint                `json:"id"`
+	UserID      uint                `json:"user_id"`
+	Email       string              `json:"email"`
+	UpdatedAt   time.Time           `json:"last_modified"`
+	UserDetails userDetailsResponse `json:"user_details"`
 }
 
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
@@ -119,5 +128,15 @@ func SerializeDeleteUserResponse(user models.User, userResponse UserDetailsRespo
 	return DeleteUserResponse{
 		Message: "User and associated details deleted successfully",
 		User:    userResponse,
+	}
+}
+
+func SerializeGetUserResponse(user models.User, userResponse userDetailsResponse) GetUserResponse {
+	return GetUserResponse{
+		ID:          user.ID,
+		UserID:      user.ID,
+		Email:       user.Email,
+		UpdatedAt:   user.UpdatedAt,
+		UserDetails: userResponse,
 	}
 }
