@@ -5,6 +5,7 @@ import (
 
 	"net/http"
 
+	"mini-social-network/config"
 	"mini-social-network/constants"
 	"mini-social-network/serializers"
 	"mini-social-network/services"
