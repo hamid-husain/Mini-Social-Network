@@ -71,7 +71,7 @@ func CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpR
 		return nil, err
 	}
 
-	userResponse := serializers.SerializeResponse(user, resident, office)
+	userResponse := serializers.SerializeResponse(user, []models.ResidentialDetail{resident}, []models.OfficeDetail{office})
 	tokenResponse := serializers.SerializeToken(token, expiryTime)
 
 	response := serializers.SerializeSignUpResponse(user, userResponse, tokenResponse)

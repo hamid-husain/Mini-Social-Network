@@ -15,27 +15,21 @@ type UserDetailsInput struct {
 }
 
 type userDetailsResponse struct {
-	ID                 uint                       `json:"id"`
-	Email              string                     `json:"email"`
-	FirstName          string                     `json:"first_name"`
-	LastName           string                     `json:"last_name,omitempty"`
-	DateOfBirth        string                     `json:"date_of_birth"`
-	Gender             uint8                      `json:"gender"`
-	MaritalStatus      uint8                      `json:"marital_status"`
-	ResidentialDetails ResidentialDetailsResponse `json:"residential_details"`
-	OfficeDetails      OfficeDetailsResponse      `json:"office_details"`
+	ID                 uint                         `json:"id"`
+	Email              string                       `json:"email"`
+	FirstName          string                       `json:"first_name"`
+	LastName           string                       `json:"last_name,omitempty"`
+	DateOfBirth        string                       `json:"date_of_birth"`
+	Gender             uint8                        `json:"gender"`
+	MaritalStatus      uint8                        `json:"marital_status"`
+	ResidentialDetails []ResidentialDetailsResponse `json:"residential_details"`
+	OfficeDetails      []OfficeDetailsResponse      `json:"office_details"`
 }
 
-func SerializeResponse(user models.User, resident models.ResidentialDetail, office models.OfficeDetail) userDetailsResponse {
-	return userDetailsResponse{
-		ID:            user.ID,
-		Email:         user.Email,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		DateOfBirth:   user.DateOfBirth,
-		Gender:        user.Gender,
-		MaritalStatus: user.MaritalStatus,
-		ResidentialDetails: ResidentialDetailsResponse{
+func SerializeResponse(user models.User, residents []models.ResidentialDetail, offices []models.OfficeDetail) userDetailsResponse {
+	var residentialDetails []ResidentialDetailsResponse
+	for _, resident := range residents {
+		residentialDetails = append(residentialDetails, ResidentialDetailsResponse{
 			ID:         resident.ID,
 			UserID:     resident.UserID,
 			Address:    resident.Address,
@@ -44,8 +38,12 @@ func SerializeResponse(user models.User, resident models.ResidentialDetail, offi
 			Country:    resident.Country,
 			ContactNo1: resident.ContactNumber1,
 			ContactNo2: resident.ContactNumber2,
-		},
-		OfficeDetails: OfficeDetailsResponse{
+		})
+	}
+
+	var officeDetails []OfficeDetailsResponse
+	for _, office := range offices {
+		officeDetails = append(officeDetails, OfficeDetailsResponse{
 			ID:           office.ID,
 			UserID:       office.UserID,
 			EmployeeCode: office.EmployeeCode,
@@ -56,6 +54,18 @@ func SerializeResponse(user models.User, resident models.ResidentialDetail, offi
 			ContactNo:    office.ContactNumber,
 			Email:        office.Email,
 			Name:         office.Name,
-		},
+		})
+	}
+
+	return userDetailsResponse{
+		ID:                 user.ID,
+		Email:              user.Email,
+		FirstName:          user.FirstName,
+		LastName:           user.LastName,
+		DateOfBirth:        user.DateOfBirth,
+		Gender:             user.Gender,
+		MaritalStatus:      user.MaritalStatus,
+		ResidentialDetails: residentialDetails,
+		OfficeDetails:      officeDetails,
 	}
 }
