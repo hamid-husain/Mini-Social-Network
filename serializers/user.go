@@ -26,6 +26,23 @@ type UserDetailsResponse struct {
 	OfficeDetails      []OfficeDetailsResponse      `json:"office_details"`
 }
 
+type UserLoginResponse struct {
+	ID           uint   `json:"id"`
+	Email        string `json:"email"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	LastModified string `json:"last_modified"`
+}
+
+func SerializeLoginResponse(user models.User) UserLoginResponse {
+	return UserLoginResponse{
+		ID:           user.ID,
+		Email:        user.Email,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		LastModified: user.UpdatedAt.String(),
+	}
+}
 func SerializeResponse(user models.User, residents []models.ResidentialDetail, offices []models.OfficeDetail) UserDetailsResponse {
 	var residentialDetails []ResidentialDetailsResponse
 	for _, resident := range residents {

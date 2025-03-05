@@ -12,6 +12,6 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 	{
 		users.GET("/", controllers.ListUsers(service))
 		users.POST("/create", controllers.CreateUser(service))
-		users.POST("/login", controllers.Login)
+		users.POST("/login", controllers.Login(service))
 	}
 }

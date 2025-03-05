@@ -183,9 +183,9 @@ func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) erro
 	return nil
 }
 
-func VerifyUserCredentials(email, password string) (*models.User, error) {
+func (s *Service) VerifyUserCredentials(email, password string) (*models.User, error) {
 	var user models.User
-	if err := db.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := s.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if err.Error() == "record not found" {
 			return nil, errors.New("user not found")
 		}
