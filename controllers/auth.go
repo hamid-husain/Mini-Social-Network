@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"mini-social-network/config"
 	"mini-social-network/constants"
 	"mini-social-network/serializers"
 	"mini-social-network/services"
@@ -57,19 +58,17 @@ func Login(service *services.Service) gin.HandlerFunc {
 			return
 		}
 
-		c.SetCookie("token", token, int(expiryTime-time.Now().Unix()), "/", "localhost", false, true)
+		c.SetCookie("token", token, int(expiryTime-time.Now().Unix()), "/", config.AppConfig.Domain, false, true)
 
-		userResponse := serializers.SerializeLoginResponse(*user)
+		userResponse := serializers.SerializeUserLoginResponse(*user)
 		tokenResponse := serializers.SerializeToken(token, expiryTime)
-		c.JSON(http.StatusOK, gin.H{
-			"user_details": userResponse,
-			"token":        tokenResponse,
-		})
+		response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", false, true)
+	c.SetCookie("token", "", -1, "/", config.AppConfig.Domain, false, true)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
+	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessLogOut})
 }

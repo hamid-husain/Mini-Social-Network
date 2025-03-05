@@ -9,3 +9,10 @@ type LoginResponse struct {
 	Token TokenSerializer   `json:"token"`
 	User  UserLoginResponse `json:"user"`
 }
+
+func SerializeLoginResponse(user UserLoginResponse, token TokenSerializer) LoginResponse {
+	return LoginResponse{
+		User:  user,
+		Token: token,
+	}
+}

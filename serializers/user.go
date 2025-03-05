@@ -1,6 +1,7 @@
 package serializers
 
 import (
+	"mini-social-network/constants"
 	"mini-social-network/models"
 )
 
@@ -34,7 +35,7 @@ type UserLoginResponse struct {
 	LastModified string `json:"last_modified"`
 }
 
-func SerializeLoginResponse(user models.User) UserLoginResponse {
+func SerializeUserLoginResponse(user models.User) UserLoginResponse {
 	return UserLoginResponse{
 		ID:           user.ID,
 		Email:        user.Email,
@@ -77,23 +78,23 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 	var gender string
 	switch user.Gender {
 	case 1:
-		gender = "male"
+		gender = constants.Male
 	case 2:
-		gender = "female"
+		gender = constants.Female
 	case 3:
-		gender = "other"
+		gender = constants.Other
 	default:
-		gender = "unknown"
+		gender = constants.Unknown
 	}
 
 	var maritalStatus string
 	switch user.MaritalStatus {
 	case 1:
-		maritalStatus = "single"
+		maritalStatus = constants.Single
 	case 2:
-		maritalStatus = "married"
+		maritalStatus = constants.Married
 	default:
-		maritalStatus = "unknown"
+		maritalStatus = constants.Unknown
 	}
 
 	return UserDetailsResponse{
