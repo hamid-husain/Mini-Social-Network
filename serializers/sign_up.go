@@ -17,11 +17,11 @@ type SignUpResponse struct {
 	UserID        uint                `json:"user_id"`
 	Email         string              `json:"email"`
 	UpdatedAt     time.Time           `json:"last_modified"`
-	UserDetails   userDetailsResponse `json:"user_details"`
+	UserDetails   UserDetailsResponse `json:"user_details"`
 	TokenResponse TokenSerializer     `json:"token"`
 }
 
-func SerializeSignUpResponse(user models.User, userResponse userDetailsResponse, token TokenSerializer) SignUpResponse {
+func SerializeSignUpResponse(user models.User, userResponse UserDetailsResponse, token TokenSerializer) SignUpResponse {
 	return SignUpResponse{
 		ID:            user.ID,
 		UserID:        user.ID,

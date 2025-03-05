@@ -14,7 +14,7 @@ type UserDetailsInput struct {
 	OfficeDetails      OfficeDetailsInput      `json:"office_details"`
 }
 
-type userDetailsResponse struct {
+type UserDetailsResponse struct {
 	ID                 uint                         `json:"id"`
 	Email              string                       `json:"email"`
 	FirstName          string                       `json:"first_name"`
@@ -26,7 +26,7 @@ type userDetailsResponse struct {
 	OfficeDetails      []OfficeDetailsResponse      `json:"office_details"`
 }
 
-func SerializeResponse(user models.User, residents []models.ResidentialDetail, offices []models.OfficeDetail) userDetailsResponse {
+func SerializeResponse(user models.User, residents []models.ResidentialDetail, offices []models.OfficeDetail) UserDetailsResponse {
 	var residentialDetails []ResidentialDetailsResponse
 	for _, resident := range residents {
 		residentialDetails = append(residentialDetails, ResidentialDetailsResponse{
@@ -57,7 +57,7 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 		})
 	}
 
-	return userDetailsResponse{
+	return UserDetailsResponse{
 		ID:                 user.ID,
 		Email:              user.Email,
 		FirstName:          user.FirstName,
