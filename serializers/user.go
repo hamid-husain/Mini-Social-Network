@@ -49,6 +49,11 @@ type GetUserResponse struct {
 	UserDetails UserDetailsResponse `json:"user_details"`
 }
 
+type ListUserResponse struct {
+	UserId uint   `json:"userId"`
+	Email  string `json:"email"`
+}
+
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
 	return UserLoginResponse{
 		ID:           user.ID,
@@ -139,4 +144,15 @@ func SerializeGetUserResponse(user models.User, userResponse UserDetailsResponse
 		UpdatedAt:   user.UpdatedAt,
 		UserDetails: userResponse,
 	}
+}
+
+func SerializeListUser(users []models.User) []ListUserResponse {
+	var userResponses []ListUserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, ListUserResponse{
+			UserId: user.ID,
+			Email:  user.Email,
+		})
+	}
+	return userResponses
 }

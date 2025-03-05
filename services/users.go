@@ -33,6 +33,18 @@ func GetUserByID(userID uint) (*serializers.GetUserResponse, error) {
 	return &response, nil
 }
 
+func ListUsers() ([]serializers.ListUserResponse, error) {
+	var users []models.User
+
+	if err := db.DB.Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	response := serializers.SerializeListUser(users)
+
+	return response, nil
+}
+
 func DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, error) {
 	tx := db.DB.Begin()
 	var user models.User
