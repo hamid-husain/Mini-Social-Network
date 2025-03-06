@@ -22,14 +22,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 			tokenString = authHeader[7:]
 		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidToken})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 			c.Abort()
 			return
 		}
 
 		userID, err := utils.ValidateJWT(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidToken})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 			c.Abort()
 			return
 		}
