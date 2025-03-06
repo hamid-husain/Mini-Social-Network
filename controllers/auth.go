@@ -62,8 +62,10 @@ func (ctrl *Controller) Login(c *gin.Context) {
 		return
 	}
 
+	bearerToken := "Bearer " + token
+
 	userResponse := serializers.SerializeUserLoginResponse(*user)
-	tokenResponse := serializers.SerializeToken(token, expiryTime)
+	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
 	response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
 	c.JSON(http.StatusOK, response)
 }
