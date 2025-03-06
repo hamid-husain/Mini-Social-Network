@@ -1,11 +1,14 @@
 package services
 
 import (
+	"net/http"
+
 	"gorm.io/gorm"
 
 	"errors"
 
 	"mini-social-network/constants"
+	apiError "mini-social-network/errors"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"mini-social-network/utils"
@@ -181,6 +184,26 @@ func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) erro
 	}
 
 	return nil
+}
+
+func (s *Service) LoginHandler(req serializers.LoginRequest) (*serializers.LoginResponse, *apiError.APIError) {
+	user, err := s.VerifyUserCredentials(req.Email, req.Password)
+	if err != nil {
+		return nil, apiError.NewAPIError(constants.ErrInvalidCredentials, http.StatusUnauthorized)
+	}
+
+	token, expiryTime, err := utils.GenerateJWT(user.ID)
+	if err != nil {
+		return nil, apiError.NewAPIError(constants.ErrFailedToGenerateToken, http.StatusInternalServerError)
+	}
+
+	bearerToken := "Bearer " + token
+
+	userResponse := serializers.SerializeUserLoginResponse(*user)
+	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
+	response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
+
+	return &response, nil
 }
 
 func (s *Service) VerifyUserCredentials(email, password string) (*models.User, error) {

@@ -50,23 +50,16 @@ func (ctrl *Controller) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := ctrl.Service.VerifyUserCredentials(req.Email, req.Password)
+	response, err := ctrl.Service.LoginHandler(req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidCredentials})
+		if err.Status() == http.StatusInternalServerError {
+			c.JSON(err.Status(), gin.H{"error": constants.ErrInternalServerError})
+			return
+		}
+
+		c.JSON(err.Status(), gin.H{"error": err.Error()})
 		return
 	}
-
-	token, expiryTime, err := utils.GenerateJWT(user.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToGenerateToken})
-		return
-	}
-
-	bearerToken := "Bearer " + token
-
-	userResponse := serializers.SerializeUserLoginResponse(*user)
-	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
-	response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
 	c.JSON(http.StatusOK, response)
 }
 
