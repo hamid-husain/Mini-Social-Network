@@ -9,19 +9,24 @@ import (
 )
 
 func APIRoutes(router *gin.Engine, service *services.Service) {
+
+	ctrl := controllers.NewController(service)
+
 	users := router.Group("/api")
 	{
-		users.POST("/create", controllers.CreateUser(service))
-		users.POST("/login", controllers.Login(service))
+		users.POST("/create", ctrl.CreateUser)
+		users.POST("/login", ctrl.Login)
 	}
 
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/logout", controllers.Logout)
-		protected.DELETE("/delete", controllers.DeleteUser(service))
-		protected.GET("/get_details", controllers.GetUser(service))
-		protected.GET("/list", controllers.ListUsers(service))
-		protected.PATCH("/update", controllers.UpdateUser(service))
+		protected.GET("/logout", ctrl.Logout)
+		protected.DELETE("/delete", ctrl.DeleteUser)
+		protected.GET("/get_details", ctrl.GetUser)
+		protected.GET("/list", ctrl.ListUsers)
+		protected.PATCH("/update", ctrl.UpdateUser)
+		protected.POST("/follow", ctrl.FollowUser)
+		protected.POST("/unfollow", ctrl.UnfollowUser)
 	}
 }

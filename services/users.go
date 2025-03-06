@@ -1,42 +1,39 @@
 package services
 
 import (
-	"errors"
+	"gorm.io/gorm"
+
+	"fmt"
+	"net/http"
+
 	"mini-social-network/constants"
+	"mini-social-network/errors"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
-	"time"
-
-	"gorm.io/gorm"
 )
 
-func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, error) {
+func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, *errors.APIError) {
 	var user models.User
-	if err := s.DB.Where("id = ? AND deleted_at IS NULL", userID).First(&user).Error; err != nil {
-		return nil, err
+	if err := s.DB.Preload("OfficeDetails").Preload("ResidentialDetails").
+		Where("id = ? AND deleted_at IS NULL", userID).
+		First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		}
+		return nil, errors.NewAPIError(constants.ErrInternalServerError, http.StatusInternalServerError)
 	}
 
-	var officeDetails []models.OfficeDetail
-	if err := s.DB.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
-		return nil, err
-	}
-
-	var residentialDetails []models.ResidentialDetail
-	if err := s.DB.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
-		return nil, err
-	}
-
-	userResponse := serializers.SerializeResponse(user, residentialDetails, officeDetails)
+	userResponse := serializers.SerializeResponse(user, user.ResidentialDetails, user.OfficeDetails)
 	response := serializers.SerializeGetUserResponse(user, userResponse)
 
 	return &response, nil
 }
 
-func (s *Service) ListUsers() ([]serializers.ListUserResponse, error) {
+func (s *Service) ListUsers() ([]serializers.ListUserResponse, *errors.APIError) {
 	var users []models.User
 
-	if err := s.DB.Find(&users).Error; err != nil {
-		return nil, err
+	if err := s.DB.Select("id, email").Find(&users).Error; err != nil {
+		return nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 	}
 
 	response := serializers.SerializeListUser(users)
@@ -44,7 +41,7 @@ func (s *Service) ListUsers() ([]serializers.ListUserResponse, error) {
 	return response, nil
 }
 
-func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, error) {
+func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, *errors.APIError) {
 	tx := s.DB.Begin()
 	var user models.User
 
@@ -54,63 +51,52 @@ func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, 
 		}
 	}()
 
-	if err := tx.First(&user, "id = ?", userID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err := tx.Preload("OfficeDetails").Preload("ResidentialDetails").First(&user, "id = ?", userID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
 			tx.Rollback()
-			return nil, errors.New(constants.ErrUserNotFound)
+			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
 		}
 		tx.Rollback()
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 	}
 
-	if err := tx.Model(&user).Update("deleted_at", time.Now()).Error; err != nil {
+	if err := tx.Delete(&user).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToDeleteUser, http.StatusInternalServerError)
 	}
 
-	var officeDetails []models.OfficeDetail
-	if err := tx.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
+	if err := tx.Delete(&user.ResidentialDetails).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToDeleteResAddr, http.StatusInternalServerError)
 	}
 
-	for _, office := range officeDetails {
-		if err := tx.Model(&office).Update("deleted_at", time.Now()).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	}
-
-	var residentialDetails []models.ResidentialDetail
-	if err := tx.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
+	if err := tx.Delete(&user.OfficeDetails).Error; err != nil {
 		tx.Rollback()
-		return nil, err
-	}
-
-	for _, resident := range residentialDetails {
-		if err := tx.Model(&resident).Update("deleted_at", time.Now()).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
+		return nil, errors.NewAPIError(constants.ErrFailedToDeleteOffAddr, http.StatusInternalServerError)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToCommit, http.StatusInternalServerError)
 	}
 
-	userResponse := serializers.SerializeResponse(user, residentialDetails, officeDetails)
+	userResponse := serializers.SerializeResponse(user, user.ResidentialDetails, user.OfficeDetails)
 	response := serializers.SerializeDeleteUserResponse(user, userResponse)
 
 	return &response, nil
 }
 
-func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, error) {
+func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, *errors.APIError) {
 	tx := s.DB.Begin()
 
 	var user models.User
-	if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
+	if err := tx.Preload("OfficeDetails").Preload("ResidentialDetails").
+		Where("id = ?", userID).First(&user).Error; err != nil {
 		tx.Rollback()
-		return nil, errors.New(constants.ErrUserNotFound)
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		}
+		tx.Rollback()
+		return nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 	}
 
 	if req.FirstName != "" {
@@ -121,7 +107,7 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 	}
 	if req.Gender != "" {
 		var gender uint8
-		var err error
+		var err *errors.APIError
 
 		switch req.Gender {
 		case "male":
@@ -131,7 +117,7 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 		case "other":
 			gender = 3
 		default:
-			err = errors.New("invalid gender value")
+			err = errors.NewAPIError(constants.ErrInvalidGenderValue, http.StatusUnprocessableEntity)
 		}
 
 		if err != nil {
@@ -146,7 +132,7 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 	}
 	if req.MaritalStatus != "" {
 		var maritalStatus uint8
-		var err error
+		var err *errors.APIError
 
 		switch req.MaritalStatus {
 		case "single":
@@ -154,7 +140,7 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 		case "married":
 			maritalStatus = 2
 		default:
-			err = errors.New("invalid marital status value")
+			err = errors.NewAPIError(constants.ErrInvalidMaritalStatus, http.StatusUnprocessableEntity)
 		}
 
 		if err != nil {
@@ -166,25 +152,95 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 
 	if err := tx.Save(&user).Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToUpdate, http.StatusInternalServerError)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return nil, err
+		return nil, errors.NewAPIError(constants.ErrFailedToCommit, http.StatusInternalServerError)
 	}
 
-	var officeDetails []models.OfficeDetail
-	if err := s.DB.Where("user_id = ?", userID).Find(&officeDetails).Error; err != nil {
-		return nil, err
-	}
-
-	var residentialDetails []models.ResidentialDetail
-	if err := s.DB.Where("user_id = ?", userID).Find(&residentialDetails).Error; err != nil {
-		return nil, err
-	}
-
-	userResponse := serializers.SerializeResponse(user, residentialDetails, officeDetails)
+	userResponse := serializers.SerializeResponse(user, user.ResidentialDetails, user.OfficeDetails)
 	response := serializers.SerializeGetUserResponse(user, userResponse)
 
 	return &response, nil
+}
+
+func (s *Service) checkIfUserExists(userID uint) bool {
+	var user models.User
+	err := s.DB.First(&user, userID).Error
+	return err == nil
+}
+
+func (s *Service) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
+	tx := s.DB.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, followerID := range followerIDs {
+
+		if !s.checkIfUserExists(followerID) {
+			tx.Rollback()
+			return errors.NewAPIError(fmt.Sprintf("user with ID %d does not exist", followerID), http.StatusBadRequest)
+		}
+
+		var follow models.UserFollowing
+		err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&follow).Error
+		if err == nil {
+			continue
+		}
+
+		if err != gorm.ErrRecordNotFound {
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrFailedToCheckFollowing, http.StatusInternalServerError)
+		}
+
+		follow = models.UserFollowing{
+			UserID:     userID,
+			FollowerID: followerID,
+		}
+
+		if err := tx.Create(&follow).Error; err != nil {
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrFailedToFollow, http.StatusInternalServerError)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return errors.NewAPIError(constants.ErrFailedToCommit, http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s *Service) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
+	tx := s.DB.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, followerID := range followerIDs {
+
+		if !s.checkIfUserExists(followerID) {
+			tx.Rollback()
+			return errors.NewAPIError(fmt.Sprintf("User with ID %d does not exist", followerID), http.StatusBadRequest)
+		}
+
+		if err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).Delete(&models.UserFollowing{}).Error; err != nil {
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrFailedToUnfollow, http.StatusInternalServerError)
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return errors.NewAPIError(constants.ErrFailedToCommit, http.StatusInternalServerError)
+	}
+
+	return nil
 }
