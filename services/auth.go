@@ -111,8 +111,10 @@ func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serial
 		return nil, err
 	}
 
+	bearerToken := "Bearer " + token
+
 	userResponse := serializers.SerializeResponse(user, []models.ResidentialDetail{resident}, []models.OfficeDetail{office})
-	tokenResponse := serializers.SerializeToken(token, expiryTime)
+	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
 
 	response := serializers.SerializeSignUpResponse(user, userResponse, tokenResponse)
 
