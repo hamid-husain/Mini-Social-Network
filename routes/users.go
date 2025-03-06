@@ -28,5 +28,7 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 		protected.PATCH("/update", ctrl.UpdateUser)
 		protected.POST("/follow", ctrl.FollowUser)
 		protected.POST("/unfollow", ctrl.UnfollowUser)
+		protected.GET("/followings", ctrl.GetFollowing)
+		protected.GET("/followers", ctrl.GetFollowers)
 	}
 }

@@ -244,3 +244,35 @@ func (s *Service) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.API
 
 	return nil
 }
+
+func (s *Service) GetFollowersByID(userID uint) ([]uint, *errors.APIError) {
+	var follower []uint
+	err := s.DB.Table("user_followings").
+		Where("follower_id = ?", userID).
+		Pluck("user_id", &follower).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		}
+		return nil, errors.NewAPIError(err.Error(), http.StatusInternalServerError)
+	}
+
+	return follower, nil
+}
+
+func (s *Service) GetFollowing(userID uint) ([]uint, *errors.APIError) {
+	var following []uint
+	err := s.DB.Table("user_followings").
+		Where("user_id = ?", userID).
+		Pluck("follower_id", &following).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		}
+		return nil, errors.NewAPIError(err.Error(), http.StatusInternalServerError)
+	}
+
+	return following, nil
+}

@@ -138,3 +138,42 @@ func (ctrl *Controller) UnfollowUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessUserUnfollowed})
 }
+
+func (ctrl *Controller) GetFollowers(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	followers, err := ctrl.Service.GetFollowersByID(userID.(uint))
+	if err != nil {
+		if err.Status() == http.StatusNotFound {
+			c.JSON(err.Status(), gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrInternalServerError})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user_ids": followers})
+}
+
+func (ctrl *Controller) GetFollowing(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+	following, err := ctrl.Service.GetFollowing(userID.(uint))
+	if err != nil {
+		if err.Status() == http.StatusNotFound {
+			c.JSON(err.Status(), gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrInternalServerError})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user_ids": following})
+}
