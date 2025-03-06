@@ -16,7 +16,7 @@ func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, *error
 	var user models.User
 	if err := s.DB.Preload("OfficeDetails").Preload("ResidentialDetails").
 		Where("id = ? AND deleted_at IS NULL", userID).
-		First(&user).Error; err != nil {
+		Scan(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
 		}
