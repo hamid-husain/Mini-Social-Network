@@ -83,6 +83,11 @@ func ValidateDOB(fl validator.FieldLevel) bool {
 	}
 
 	today := time.Now()
+
+	if dob.After(today) {
+		return false
+	}
+
 	age := today.Year() - dob.Year()
 
 	if today.YearDay() < dob.YearDay() {
