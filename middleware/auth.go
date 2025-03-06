@@ -11,9 +11,18 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString, err := c.Cookie("token")
-		if err != nil || tokenString == "" {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+			c.Abort()
+			return
+		}
+
+		tokenString := ""
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			tokenString = authHeader[7:]
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidToken})
 			c.Abort()
 			return
 		}
