@@ -58,7 +58,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	migrationsDir := "/home/ubuntu/Desktop/project/db/migrations"
+	migrationsDir := config.AppConfig.MigrationsDir
 	if err := goose.RunContext(ctx, command, db, migrationsDir, arguments...); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
 	}

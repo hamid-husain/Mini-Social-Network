@@ -7,13 +7,14 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     int
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
-	ServerPort string
+	DBHost        string
+	DBPort        int
+	DBUser        string
+	DBPassword    string
+	DBName        string
+	DBSSLMode     string
+	ServerPort    string
+	MigrationsDir string
 }
 
 var AppConfig Config
@@ -27,13 +28,14 @@ func LoadConfig() {
 	}
 
 	AppConfig = Config{
-		DBHost:     viper.GetString("DB_HOST"),
-		DBPort:     viper.GetInt("DB_PORT"),
-		DBUser:     viper.GetString("DB_USER"),
-		DBPassword: viper.GetString("DB_PASSWORD"),
-		DBName:     viper.GetString("DB_NAME"),
-		DBSSLMode:  viper.GetString("DB_SSL"),
-		ServerPort: viper.GetString("SERVER_PORT"),
+		DBHost:        viper.GetString("DB_HOST"),
+		DBPort:        viper.GetInt("DB_PORT"),
+		DBUser:        viper.GetString("DB_USER"),
+		DBPassword:    viper.GetString("DB_PASSWORD"),
+		DBName:        viper.GetString("DB_NAME"),
+		DBSSLMode:     viper.GetString("DB_SSL"),
+		ServerPort:    viper.GetString("SERVER_PORT"),
+		MigrationsDir: viper.GetString("MIGRATION_DIR"),
 	}
 
 	log.Printf("Config Loaded: %+v\n", AppConfig)
