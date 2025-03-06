@@ -57,6 +57,33 @@ func (ctrl *Controller) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (ctrl *Controller) UpdatePassword(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
+		return
+	}
+
+	var req serializers.PasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		validationErrorsMap := utils.ParseValidationErrors(err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"errors": validationErrorsMap})
+		return
+	}
+
+	err := ctrl.Service.UpdatePasswordByID(userID.(uint), req)
+
+	if err != nil {
+		if err.Status() == http.StatusInternalServerError {
+			c.JSON(err.Status(), gin.H{"error": constants.ErrInternalServerError})
+		}
+		c.JSON(err.Status(), gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessPasswordUpdated})
+}
+
 func (ctrl *Controller) UpdateUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

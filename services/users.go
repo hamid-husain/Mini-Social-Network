@@ -1,6 +1,7 @@
 package services
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"mini-social-network/errors"
 	"mini-social-network/models"
 	"mini-social-network/serializers"
+	"mini-social-network/utils"
 )
 
 func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, *errors.APIError) {
@@ -39,6 +41,28 @@ func (s *Service) ListUsers() ([]serializers.ListUserResponse, *errors.APIError)
 	response := serializers.SerializeListUser(users)
 
 	return response, nil
+}
+
+func (s *Service) UpdatePasswordByID(userID uint, req serializers.PasswordRequest) *errors.APIError {
+	var user models.User
+	if err := s.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		return errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+		return errors.NewAPIError(constants.ErrInvalidOldPassword, http.StatusBadRequest)
+	}
+
+	newPasswordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return errors.NewAPIError(constants.ErrFailedToHashPassword, http.StatusInternalServerError)
+	}
+
+	if err := s.DB.Model(&models.User{}).Where("id = ?", userID).Update("password", newPasswordHash).Error; err != nil {
+		return errors.NewAPIError(constants.ErrFailedToUpdatePass, http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, *errors.APIError) {

@@ -30,5 +30,6 @@ func APIRoutes(router *gin.Engine, service *services.Service) {
 		protected.POST("/unfollow", ctrl.UnfollowUser)
 		protected.GET("/followings", ctrl.GetFollowing)
 		protected.GET("/followers", ctrl.GetFollowers)
+		protected.POST("/update_password", ctrl.UpdatePassword)
 	}
 }

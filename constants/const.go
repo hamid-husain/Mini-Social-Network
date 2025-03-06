@@ -12,6 +12,7 @@ const (
 	ErrInvalidToken           = "invalid token"
 	ErrTokenExpired           = "token expired"
 	ErrInvalidPassword        = "invalid password"
+	ErrInvalidOldPassword     = "incorrect old password"
 	ErrRecordNotFound         = "record not found"
 	ErrUnauthorized           = "not authorized or token expired"
 	ErrFailedToCommit         = "failed to commit transaction"
@@ -23,14 +24,16 @@ const (
 	ErrFailedToDeleteResAddr  = "failed to delete residential details"
 	ErrFailedToDeleteOffAddr  = "failed to delete office details"
 	ErrFailedToUnfollow       = "failed to unfollow user"
+	ErrFailedToUpdatePass     = "failed to update password"
 
 	ErrInvalidMaritalStatus = "invalid marital status value"
 	ErrInvalidGenderValue   = "invalid gender value"
 
-	SuccessLogOut         = "Successfully logged out"
-	SuccessUserDeleted    = "User deleted successfully"
-	SuccessUserFollowed   = "Users followed successfully"
-	SuccessUserUnfollowed = "Users followed successfully"
+	SuccessLogOut          = "Successfully logged out"
+	SuccessUserDeleted     = "User deleted successfully"
+	SuccessUserFollowed    = "Users followed successfully"
+	SuccessUserUnfollowed  = "Users followed successfully"
+	SuccessPasswordUpdated = "Users followed successfully"
 
 	DBHost       = "DB_HOST"
 	DBPort       = "DB_PORT"
