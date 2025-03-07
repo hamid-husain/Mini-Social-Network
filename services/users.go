@@ -54,7 +54,10 @@ func (s *UserService) ListUsers() ([]serializers.ListUserResponse, *errors.APIEr
 func (s *UserService) UpdatePasswordByID(userID uint, req serializers.PasswordRequest) *errors.APIError {
 	var user models.User
 	if err := s.DB.Where("id = ?", userID).First(&user).Error; err != nil {
-		return errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		if err == gorm.ErrRecordNotFound {
+			return errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
+		}
+		return errors.NewAPIError(constants.ErrInternalServerError, http.StatusInternalServerError)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
