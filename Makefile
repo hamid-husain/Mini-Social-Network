@@ -11,6 +11,9 @@ install:
 	go mod tidy
 	go mod download
 
+dev: 
+	go run main.go
+
 build:
 	go build -o $(APP_NAME) main.go
 
