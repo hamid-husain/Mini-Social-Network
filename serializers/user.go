@@ -1,17 +1,18 @@
 package serializers
 
 import (
+	"time"
+
 	"mini-social-network/constants"
 	"mini-social-network/models"
-	"time"
 )
 
 type UserDetailsInput struct {
 	FirstName          string                  `json:"first_name" binding:"required"`
 	LastName           string                  `json:"last_name"`
 	DateOfBirth        string                  `json:"date_of_birth" binding:"required,valid_dob"`
-	Gender             string                  `json:"gender" binding:"required, oneof=male female other"`
-	MaritalStatus      string                  `json:"marital_status" binding:"required, oneof=single married"`
+	Gender             string                  `json:"gender" binding:"required,oneof=male female other"`
+	MaritalStatus      string                  `json:"marital_status" binding:"required,oneof=single married"`
 	ResidentialDetails ResidentialDetailsInput `json:"residential_details"`
 	OfficeDetails      OfficeDetailsInput      `json:"office_details"`
 }
@@ -58,8 +59,8 @@ type UpdateUserRequest struct {
 	FirstName     string `json:"first_name,omitempty"`
 	LastName      string `json:"last_name,omitempty"`
 	DateOfBirth   string `json:"date_of_birth,omitempty" binding:"valid_dob"`
-	Gender        string `json:"gender,omitempty" binding:"oneof=male female other"`
-	MaritalStatus string `json:"marital_status,omitempty" binding:"oneof=single married"`
+	Gender        string `json:"gender,omitempty"`
+	MaritalStatus string `json:"marital_status,omitempty"`
 }
 
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {

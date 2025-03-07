@@ -31,7 +31,7 @@ func (ctrl *AuthController) CreateUser(c *gin.Context) {
 	response, err := ctrl.AuthService.CreateUserWithDetails(&req)
 	if err != nil {
 		if err.Error() == constants.ErrEmailAlreadyExists {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": gin.H{"email": []string{err.Error()}}})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
