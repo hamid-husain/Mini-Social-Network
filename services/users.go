@@ -123,6 +123,13 @@ func (s *UserService) UpdateUserByID(userID uint, req *serializers.UpdateUserReq
 	tx := s.DB.Begin()
 
 	var user models.User
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	if err := tx.Preload("OfficeDetails").Preload("ResidentialDetails").
 		Where("id = ?", userID).First(&user).Error; err != nil {
 		tx.Rollback()
