@@ -55,4 +55,11 @@ const (
 	Married = "married"
 
 	Authorization = "Authorization"
+
+	GenderMale   = 1
+	GenderFemale = 2
+	GenderOther  = 3
+
+	MaritalStatusSingle  = 1
+	MaritalStatusMarried = 2
 )

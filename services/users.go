@@ -137,48 +137,20 @@ func (s *UserService) UpdateUserByID(userID uint, req *serializers.UpdateUserReq
 		user.LastName = req.LastName
 	}
 	if req.Gender != "" {
-		var gender uint8
-		var err *errors.APIError
-
-		switch req.Gender {
-		case "male":
-			gender = 1
-		case "female":
-			gender = 2
-		case "other":
-			gender = 3
-		default:
-			err = errors.NewAPIError(constants.ErrInvalidGenderValue, http.StatusUnprocessableEntity)
-		}
-
-		if err != nil {
+		if err := user.SetGender(req.Gender); err != nil {
 			tx.Rollback()
-			return nil, err
+			return nil, errors.NewAPIError(constants.ErrInvalidGenderValue, http.StatusUnprocessableEntity)
 		}
-		user.Gender = gender
 	}
 
 	if req.DateOfBirth != "" {
 		user.DateOfBirth = req.DateOfBirth
 	}
 	if req.MaritalStatus != "" {
-		var maritalStatus uint8
-		var err *errors.APIError
-
-		switch req.MaritalStatus {
-		case "single":
-			maritalStatus = 1
-		case "married":
-			maritalStatus = 2
-		default:
-			err = errors.NewAPIError(constants.ErrInvalidMaritalStatus, http.StatusUnprocessableEntity)
-		}
-
-		if err != nil {
+		if err := user.SetMaritalStatus(req.MaritalStatus); err != nil {
 			tx.Rollback()
-			return nil, err
+			return nil, errors.NewAPIError(constants.ErrInvalidMaritalStatus, http.StatusUnprocessableEntity)
 		}
-		user.MaritalStatus = maritalStatus
 	}
 
 	if err := tx.Save(&user).Error; err != nil {

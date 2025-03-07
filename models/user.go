@@ -2,6 +2,9 @@ package models
 
 import (
 	"gorm.io/gorm"
+
+	"fmt"
+	"mini-social-network/constants"
 )
 
 type User struct {
@@ -17,4 +20,31 @@ type User struct {
 	ResidentialDetails []ResidentialDetail `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Following          []UserFollowing     `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Followers          []UserFollowing     `gorm:"foreignKey:FollowerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+func (u *User) SetGender(genderStr string) error {
+	switch genderStr {
+	case constants.Male:
+		u.Gender = constants.GenderMale
+	case constants.Female:
+		u.Gender = constants.GenderFemale
+	case constants.Other:
+		u.Gender = constants.GenderOther
+	default:
+		return fmt.Errorf("invalid gender value: %s", genderStr)
+	}
+	return nil
+}
+
+func (u *User) SetMaritalStatus(maritalStatus string) error {
+	switch maritalStatus {
+	case constants.Single:
+		u.MaritalStatus = constants.MaritalStatusSingle
+	case constants.Married:
+		u.MaritalStatus = constants.MaritalStatusMarried
+	default:
+		return fmt.Errorf("invalid marital_status value: %s", maritalStatus)
+	}
+
+	return nil
 }

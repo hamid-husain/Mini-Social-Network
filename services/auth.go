@@ -27,47 +27,22 @@ func NewAuthService(db *gorm.DB) *AuthService {
 func (s *AuthService) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
 	tx := s.DB.Begin()
 
-	var gender, maritalStatus uint8
-	var err error
-
-	switch req.UserDetails.Gender {
-	case constants.Male:
-		gender = 1
-	case constants.Female:
-		gender = 2
-	case constants.Other:
-		gender = 3
-	default:
-		err = errors.New(constants.ErrInvalidGenderValue)
-	}
-
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	switch req.UserDetails.MaritalStatus {
-	case constants.Single:
-		maritalStatus = 1
-	case constants.Married:
-		maritalStatus = 2
-	default:
-		err = errors.New(constants.ErrInvalidMaritalStatus)
-	}
-
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
 	user := models.User{
-		Email:         req.Email,
-		FirstName:     req.UserDetails.FirstName,
-		LastName:      req.UserDetails.LastName,
-		DateOfBirth:   req.UserDetails.DateOfBirth,
-		Gender:        gender,
-		MaritalStatus: maritalStatus,
-		Password:      req.Password,
+		Email:       req.Email,
+		FirstName:   req.UserDetails.FirstName,
+		LastName:    req.UserDetails.LastName,
+		DateOfBirth: req.UserDetails.DateOfBirth,
+		Password:    req.Password,
+	}
+
+	if err := user.SetGender(req.UserDetails.Gender); err != nil {
+		tx.Rollback()
+		return nil, errors.New(constants.ErrInvalidGenderValue)
+	}
+
+	if err := user.SetMaritalStatus(req.UserDetails.MaritalStatus); err != nil {
+		tx.Rollback()
+		return nil, errors.New(constants.ErrInvalidMaritalStatus)
 	}
 
 	if err := CreateUser(tx, &user); err != nil {
