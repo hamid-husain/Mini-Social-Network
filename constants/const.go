@@ -36,4 +36,6 @@ const (
 	Unknown = "unknown"
 	Single  = "single"
 	Married = "married"
+
+	Authorization = "Authorization"
 )
