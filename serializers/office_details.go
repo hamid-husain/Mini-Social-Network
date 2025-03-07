@@ -1,7 +1,7 @@
 package serializers
 
 type OfficeDetailsInput struct {
-	EmployeeCode string `json:"employee_code" binding:"required,max=6"`
+	EmployeeCode string `json:"employee_code" binding:"required,max=10"`
 	Address      string `json:"address" binding:"required,max=100"`
 	City         string `json:"city" binding:"required,max=100"`
 	State        string `json:"state" binding:"required,max=100"`
