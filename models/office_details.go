@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type OfficeDetail struct {
 	gorm.Model
 	UserID        uint   `gorm:"index"`
-	EmployeeCode  string `gorm:"type:varchar(6)"`
+	EmployeeCode  string `gorm:"type:varchar(10)"`
 	Address       string `gorm:"type:varchar(100)"`
 	City          string `gorm:"type:varchar(100)"`
 	State         string `gorm:"type:varchar(100)"`
