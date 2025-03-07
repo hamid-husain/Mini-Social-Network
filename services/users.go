@@ -14,7 +14,15 @@ import (
 	"mini-social-network/utils"
 )
 
-func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, *errors.APIError) {
+type UserService struct {
+	DB *gorm.DB
+}
+
+func NewUserService(db *gorm.DB) *UserService {
+	return &UserService{DB: db}
+}
+
+func (s *UserService) GetUserByID(userID uint) (*serializers.GetUserResponse, *errors.APIError) {
 	var user models.User
 	if err := s.DB.Preload("OfficeDetails").Preload("ResidentialDetails").
 		Where("id = ? AND deleted_at IS NULL", userID).
@@ -31,7 +39,7 @@ func (s *Service) GetUserByID(userID uint) (*serializers.GetUserResponse, *error
 	return &response, nil
 }
 
-func (s *Service) ListUsers() ([]serializers.ListUserResponse, *errors.APIError) {
+func (s *UserService) ListUsers() ([]serializers.ListUserResponse, *errors.APIError) {
 	var users []models.User
 
 	if err := s.DB.Select("id, email").Find(&users).Error; err != nil {
@@ -43,7 +51,7 @@ func (s *Service) ListUsers() ([]serializers.ListUserResponse, *errors.APIError)
 	return response, nil
 }
 
-func (s *Service) UpdatePasswordByID(userID uint, req serializers.PasswordRequest) *errors.APIError {
+func (s *UserService) UpdatePasswordByID(userID uint, req serializers.PasswordRequest) *errors.APIError {
 	var user models.User
 	if err := s.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		return errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
@@ -65,7 +73,7 @@ func (s *Service) UpdatePasswordByID(userID uint, req serializers.PasswordReques
 	return nil
 }
 
-func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, *errors.APIError) {
+func (s *UserService) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, *errors.APIError) {
 	tx := s.DB.Begin()
 	var user models.User
 
@@ -109,7 +117,7 @@ func (s *Service) DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, 
 	return &response, nil
 }
 
-func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, *errors.APIError) {
+func (s *UserService) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, *errors.APIError) {
 	tx := s.DB.Begin()
 
 	var user models.User
@@ -119,7 +127,6 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
 		}
-		tx.Rollback()
 		return nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 	}
 
@@ -189,13 +196,13 @@ func (s *Service) UpdateUserByID(userID uint, req *serializers.UpdateUserRequest
 	return &response, nil
 }
 
-func (s *Service) checkIfUserExists(userID uint) bool {
+func (s *UserService) checkIfUserExists(userID uint) bool {
 	var user models.User
 	err := s.DB.First(&user, userID).Error
 	return err == nil
 }
 
-func (s *Service) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
+func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
 	tx := s.DB.Begin()
 
 	defer func() {
@@ -206,6 +213,11 @@ func (s *Service) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIEr
 
 	for _, followerID := range followerIDs {
 
+		if userID == followerID {
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrUserCantFollowItself, http.StatusBadRequest)
+		}
+
 		if !s.checkIfUserExists(followerID) {
 			tx.Rollback()
 			return errors.NewAPIError(fmt.Sprintf("user with ID %d does not exist", followerID), http.StatusBadRequest)
@@ -213,23 +225,26 @@ func (s *Service) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIEr
 
 		var follow models.UserFollowing
 		err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&follow).Error
-		if err == nil {
-			continue
-		}
 
-		if err != gorm.ErrRecordNotFound {
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+
+				follow = models.UserFollowing{
+					UserID:     userID,
+					FollowerID: followerID,
+				}
+
+				if err := tx.Create(&follow).Error; err != nil {
+					tx.Rollback()
+					return errors.NewAPIError(constants.ErrFailedToFollow, http.StatusInternalServerError)
+				}
+			} else {
+				tx.Rollback()
+				return errors.NewAPIError(constants.ErrFailedToCheckFollowing, http.StatusInternalServerError)
+			}
+		} else {
 			tx.Rollback()
-			return errors.NewAPIError(constants.ErrFailedToCheckFollowing, http.StatusInternalServerError)
-		}
-
-		follow = models.UserFollowing{
-			UserID:     userID,
-			FollowerID: followerID,
-		}
-
-		if err := tx.Create(&follow).Error; err != nil {
-			tx.Rollback()
-			return errors.NewAPIError(constants.ErrFailedToFollow, http.StatusInternalServerError)
+			return errors.NewAPIError(fmt.Sprintf("User with ID %d is already following user with ID %d", userID, followerID), http.StatusBadRequest)
 		}
 	}
 
@@ -240,7 +255,7 @@ func (s *Service) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIEr
 	return nil
 }
 
-func (s *Service) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
+func (s *UserService) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
 	tx := s.DB.Begin()
 
 	defer func() {
@@ -256,6 +271,17 @@ func (s *Service) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.API
 			return errors.NewAPIError(fmt.Sprintf("User with ID %d does not exist", followerID), http.StatusBadRequest)
 		}
 
+		var userFollowing models.UserFollowing
+		if err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).
+			First(&userFollowing).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				tx.Rollback()
+				return errors.NewAPIError(fmt.Sprintf("User with ID %d is not following user with ID %d", userID, followerID), http.StatusBadRequest)
+			}
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrFailedToUnfollow, http.StatusInternalServerError)
+		}
+
 		if err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).Delete(&models.UserFollowing{}).Error; err != nil {
 			tx.Rollback()
 			return errors.NewAPIError(constants.ErrFailedToUnfollow, http.StatusInternalServerError)
@@ -269,11 +295,12 @@ func (s *Service) UnfollowUsersByID(userID uint, followerIDs []uint) *errors.API
 	return nil
 }
 
-func (s *Service) GetFollowersByID(userID uint) ([]uint, *errors.APIError) {
-	var follower []uint
-	err := s.DB.Table("user_followings").
-		Where("follower_id = ?", userID).
-		Pluck("user_id", &follower).Error
+func (s *UserService) GetFollowersByID(userID uint) ([]models.User, *errors.APIError) {
+	var follower []models.User
+	err := s.DB.Model(&models.User{}).
+		Joins("JOIN user_followings ON user_followings.user_id = users.id").
+		Where("user_followings.follower_id = ?", userID).
+		Find(&follower).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -285,11 +312,12 @@ func (s *Service) GetFollowersByID(userID uint) ([]uint, *errors.APIError) {
 	return follower, nil
 }
 
-func (s *Service) GetFollowing(userID uint) ([]uint, *errors.APIError) {
-	var following []uint
-	err := s.DB.Table("user_followings").
-		Where("user_id = ?", userID).
-		Pluck("follower_id", &following).Error
+func (s *UserService) GetFollowing(userID uint) ([]models.User, *errors.APIError) {
+	var following []models.User
+	err := s.DB.Model(&models.User{}).
+		Joins("JOIN user_followings ON user_followings.follower_id = users.id").
+		Where("user_followings.user_id = ?", userID).
+		Find(&following).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

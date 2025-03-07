@@ -7,11 +7,20 @@ import (
 
 	"mini-social-network/constants"
 	"mini-social-network/serializers"
+	"mini-social-network/services"
 	"mini-social-network/utils"
 )
 
-func (ctrl *Controller) ListUsers(c *gin.Context) {
-	response, err := ctrl.Service.ListUsers()
+type UserController struct {
+	UserService *services.UserService
+}
+
+func NewUserController(userService *services.UserService) *UserController {
+	return &UserController{UserService: userService}
+}
+
+func (ctrl *UserController) ListUsers(c *gin.Context) {
+	response, err := ctrl.UserService.ListUsers()
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Error()})
 	}
@@ -19,14 +28,14 @@ func (ctrl *Controller) ListUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctrl *Controller) GetUser(c *gin.Context) {
+func (ctrl *UserController) GetUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
-	response, err := ctrl.Service.GetUserByID(userID.(uint))
+	response, err := ctrl.UserService.GetUserByID(userID.(uint))
 	if err != nil {
 		c.JSON(err.Status(), gin.H{"error": err.Error()})
 		return
@@ -35,14 +44,14 @@ func (ctrl *Controller) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctrl *Controller) DeleteUser(c *gin.Context) {
+func (ctrl *UserController) DeleteUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
-	response, err := ctrl.Service.DeleteUserByID(userID.(uint))
+	response, err := ctrl.UserService.DeleteUserByID(userID.(uint))
 	if err != nil {
 		if err.Status() == http.StatusNotFound {
 			c.JSON(err.Status(), gin.H{"error": err.Error()})
@@ -57,7 +66,7 @@ func (ctrl *Controller) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctrl *Controller) UpdatePassword(c *gin.Context) {
+func (ctrl *UserController) UpdatePassword(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
@@ -71,7 +80,7 @@ func (ctrl *Controller) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.Service.UpdatePasswordByID(userID.(uint), req)
+	err := ctrl.UserService.UpdatePasswordByID(userID.(uint), req)
 
 	if err != nil {
 		if err.Status() == http.StatusInternalServerError {
@@ -84,7 +93,7 @@ func (ctrl *Controller) UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessPasswordUpdated})
 }
 
-func (ctrl *Controller) UpdateUser(c *gin.Context) {
+func (ctrl *UserController) UpdateUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
@@ -97,7 +106,7 @@ func (ctrl *Controller) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	response, err := ctrl.Service.UpdateUserByID(userID.(uint), &req)
+	response, err := ctrl.UserService.UpdateUserByID(userID.(uint), &req)
 	if err != nil {
 		if err.Status() == http.StatusInternalServerError {
 			c.JSON(err.Status(), gin.H{"error": constants.ErrInternalServerError})
@@ -110,7 +119,7 @@ func (ctrl *Controller) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctrl *Controller) FollowUser(c *gin.Context) {
+func (ctrl *UserController) FollowUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
@@ -125,7 +134,7 @@ func (ctrl *Controller) FollowUser(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.Service.FollowUsersByID(userID.(uint), req.UserIDs)
+	err := ctrl.UserService.FollowUsersByID(userID.(uint), req.UserIDs)
 	if err != nil {
 		if err.Status() == http.StatusBadRequest {
 			c.JSON(err.Status(), gin.H{"error": err.Error()})
@@ -138,7 +147,7 @@ func (ctrl *Controller) FollowUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessUserFollowed})
 }
 
-func (ctrl *Controller) UnfollowUser(c *gin.Context) {
+func (ctrl *UserController) UnfollowUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
@@ -153,7 +162,7 @@ func (ctrl *Controller) UnfollowUser(c *gin.Context) {
 		return
 	}
 
-	err := ctrl.Service.UnfollowUsersByID(userID.(uint), req.UserIDs)
+	err := ctrl.UserService.UnfollowUsersByID(userID.(uint), req.UserIDs)
 	if err != nil {
 		if err.Status() == http.StatusBadRequest {
 			c.JSON(err.Status(), gin.H{"error": err.Error()})
@@ -166,14 +175,14 @@ func (ctrl *Controller) UnfollowUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessUserUnfollowed})
 }
 
-func (ctrl *Controller) GetFollowers(c *gin.Context) {
+func (ctrl *UserController) GetFollowers(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
 
-	followers, err := ctrl.Service.GetFollowersByID(userID.(uint))
+	followers, err := ctrl.UserService.GetFollowersByID(userID.(uint))
 	if err != nil {
 		if err.Status() == http.StatusNotFound {
 			c.JSON(err.Status(), gin.H{"error": err.Error()})
@@ -186,13 +195,13 @@ func (ctrl *Controller) GetFollowers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user_ids": followers})
 }
 
-func (ctrl *Controller) GetFollowing(c *gin.Context) {
+func (ctrl *UserController) GetFollowing(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrUnauthorized})
 		return
 	}
-	following, err := ctrl.Service.GetFollowing(userID.(uint))
+	following, err := ctrl.UserService.GetFollowing(userID.(uint))
 	if err != nil {
 		if err.Status() == http.StatusNotFound {
 			c.JSON(err.Status(), gin.H{"error": err.Error()})

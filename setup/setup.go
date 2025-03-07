@@ -22,14 +22,16 @@ func init() {
 
 	db.DB.AutoMigrate(&base_model.User{}, &base_model.OfficeDetail{}, &base_model.ResidentialDetail{}, &base_model.UserFollowing{})
 
-	service := services.NewService(db.DB)
+	authService := services.NewAuthService(db.DB)
+	userService:=services.NewUserService(db.DB)
+
 
 	validator := validator.New()
 	utils.RegisterCustomValidators(validator)
 
 	router := gin.Default()
 
-	routes.APIRoutes(router, service)
+	routes.APIRoutes(router, authService, userService)
 	router.Use(middleware.CORSMiddleware())
 
 	if err := router.Run(":" + config.AppConfig.ServerPort); err != nil {

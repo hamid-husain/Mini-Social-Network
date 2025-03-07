@@ -16,15 +16,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Service struct {
+type AuthService struct {
 	DB *gorm.DB
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+func NewAuthService(db *gorm.DB) *AuthService {
+	return &AuthService{DB: db}
 }
 
-func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
+func (s *AuthService) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
 	tx := s.DB.Begin()
 
 	var gender, maritalStatus uint8
@@ -116,10 +116,8 @@ func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serial
 		return nil, err
 	}
 
-	bearerToken := "Bearer " + token
-
 	userResponse := serializers.SerializeResponse(user, []models.ResidentialDetail{resident}, []models.OfficeDetail{office})
-	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
+	tokenResponse := serializers.SerializeToken(token, expiryTime)
 
 	response := serializers.SerializeSignUpResponse(user, userResponse, tokenResponse)
 
@@ -145,24 +143,7 @@ func CreateUser(tx *gorm.DB, user *models.User) error {
 	return nil
 }
 
-func (s *Service) GetUserByEmail(email string) (*models.User, error) {
-	var user models.User
-	if err := s.DB.Where("email = ?", email).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New(constants.ErrUserNotFound)
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (s *Service) FindUsers() ([]models.User, error) {
-	var userList []models.User
-	result := s.DB.Find(&userList)
-	return userList, result.Error
-}
-
-func (s *Service) UpdateUser(user *models.User) error {
+func (s *AuthService) UpdateUser(user *models.User) error {
 	if err := s.DB.Save(user).Error; err != nil {
 		return err
 	}
@@ -186,7 +167,7 @@ func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) erro
 	return nil
 }
 
-func (s *Service) LoginHandler(req serializers.LoginRequest) (*serializers.LoginResponse, *apiError.APIError) {
+func (s *AuthService) LoginHandler(req serializers.LoginRequest) (*serializers.LoginResponse, *apiError.APIError) {
 	user, err := s.VerifyUserCredentials(req.Email, req.Password)
 	if err != nil {
 		return nil, apiError.NewAPIError(constants.ErrInvalidCredentials, http.StatusUnauthorized)
@@ -197,16 +178,14 @@ func (s *Service) LoginHandler(req serializers.LoginRequest) (*serializers.Login
 		return nil, apiError.NewAPIError(constants.ErrFailedToGenerateToken, http.StatusInternalServerError)
 	}
 
-	bearerToken := "Bearer " + token
-
 	userResponse := serializers.SerializeUserLoginResponse(*user)
-	tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
+	tokenResponse := serializers.SerializeToken(token, expiryTime)
 	response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
 
 	return &response, nil
 }
 
-func (s *Service) VerifyUserCredentials(email, password string) (*models.User, error) {
+func (s *AuthService) VerifyUserCredentials(email, password string) (*models.User, error) {
 	var user models.User
 	if err := s.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		if err.Error() == constants.ErrRecordNotFound {

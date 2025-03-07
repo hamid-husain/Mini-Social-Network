@@ -8,28 +8,29 @@ import (
 	"mini-social-network/services"
 )
 
-func APIRoutes(router *gin.Engine, service *services.Service) {
+func APIRoutes(router *gin.Engine, authService *services.AuthService, userService *services.UserService) {
 
-	ctrl := controllers.NewController(service)
+	authCtrl := controllers.NewAuthController(authService)
+	userCtrl := controllers.NewUserController(userService)
 
 	users := router.Group("/api")
 	{
-		users.POST("/create", ctrl.CreateUser)
-		users.POST("/login", ctrl.Login)
+		users.POST("/create", authCtrl.CreateUser)
+		users.POST("/login", authCtrl.Login)
 	}
 
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/logout", ctrl.Logout)
-		protected.DELETE("/delete", ctrl.DeleteUser)
-		protected.GET("/get_details", ctrl.GetUser)
-		protected.GET("/list", ctrl.ListUsers)
-		protected.PATCH("/update", ctrl.UpdateUser)
-		protected.POST("/follow", ctrl.FollowUser)
-		protected.POST("/unfollow", ctrl.UnfollowUser)
-		protected.GET("/followings", ctrl.GetFollowing)
-		protected.GET("/followers", ctrl.GetFollowers)
-		protected.POST("/update_password", ctrl.UpdatePassword)
+		protected.GET("/logout", authCtrl.Logout)
+		protected.DELETE("/delete", userCtrl.DeleteUser)
+		protected.GET("/get_details", userCtrl.GetUser)
+		protected.GET("/list", userCtrl.ListUsers)
+		protected.PATCH("/update", userCtrl.UpdateUser)
+		protected.POST("/follow", userCtrl.FollowUser)
+		protected.POST("/unfollow", userCtrl.UnfollowUser)
+		protected.GET("/followings", userCtrl.GetFollowing)
+		protected.GET("/followers", userCtrl.GetFollowers)
+		protected.POST("/update_password", userCtrl.UpdatePassword)
 	}
 }

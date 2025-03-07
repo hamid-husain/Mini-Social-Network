@@ -25,6 +25,7 @@ const (
 	ErrFailedToDeleteOffAddr  = "failed to delete office details"
 	ErrFailedToUnfollow       = "failed to unfollow user"
 	ErrFailedToUpdatePass     = "failed to update password"
+	ErrUserCantFollowItself   = "user cannot follow themselves"
 
 	ErrInvalidMaritalStatus = "invalid marital status value"
 	ErrInvalidGenderValue   = "invalid gender value"
