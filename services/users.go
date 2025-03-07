@@ -84,11 +84,10 @@ func (s *UserService) DeleteUserByID(userID uint) (*serializers.DeleteUserRespon
 	}()
 
 	if err := tx.Preload("OfficeDetails").Preload("ResidentialDetails").First(&user, "id = ?", userID).Error; err != nil {
+		tx.Rollback()
 		if err == gorm.ErrRecordNotFound {
-			tx.Rollback()
 			return nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound)
 		}
-		tx.Rollback()
 		return nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 	}
 
@@ -168,10 +167,10 @@ func (s *UserService) UpdateUserByID(userID uint, req *serializers.UpdateUserReq
 	return &response, nil
 }
 
-func (s *UserService) checkIfUserExists(userID uint) bool {
+func (s *UserService) checkIfUserExists(userID uint) error {
 	var user models.User
 	err := s.DB.First(&user, userID).Error
-	return err == nil
+	return err
 }
 
 func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.APIError {
@@ -190,13 +189,18 @@ func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.A
 			return errors.NewAPIError(constants.ErrUserCantFollowItself, http.StatusBadRequest)
 		}
 
-		if !s.checkIfUserExists(followerID) {
+		err := s.checkIfUserExists(followerID)
+
+		if err != nil {
 			tx.Rollback()
-			return errors.NewAPIError(fmt.Sprintf("user with ID %d does not exist", followerID), http.StatusBadRequest)
+			if err == gorm.ErrRecordNotFound {
+				return errors.NewAPIError(fmt.Sprintf("user with ID %d does not exist", followerID), http.StatusBadRequest)
+			}
+			return errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 		}
 
 		var follow models.UserFollowing
-		err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&follow).Error
+		err = tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&follow).Error
 
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -238,9 +242,13 @@ func (s *UserService) UnfollowUsersByID(userID uint, followerIDs []uint) *errors
 
 	for _, followerID := range followerIDs {
 
-		if !s.checkIfUserExists(followerID) {
+		err := s.checkIfUserExists(followerID)
+		if err != nil {
 			tx.Rollback()
-			return errors.NewAPIError(fmt.Sprintf("User with ID %d does not exist", followerID), http.StatusBadRequest)
+			if err == gorm.ErrRecordNotFound {
+				return errors.NewAPIError(fmt.Sprintf("user with ID %d does not exist", followerID), http.StatusBadRequest)
+			}
+			return errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 		}
 
 		var userFollowing models.UserFollowing
