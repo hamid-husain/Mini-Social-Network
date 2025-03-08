@@ -26,6 +26,7 @@ const (
 	ErrFailedToUnfollow       = "failed to unfollow user"
 	ErrFailedToUpdatePass     = "failed to update password"
 	ErrUserCantFollowItself   = "user cannot follow themselves"
+	ErrOldPassCantBeNewPass   = "new password can't be same as new password"
 
 	ErrInvalidMaritalStatus = "invalid marital status value"
 	ErrInvalidGenderValue   = "invalid gender value"
@@ -33,8 +34,8 @@ const (
 	SuccessLogOut          = "Successfully logged out"
 	SuccessUserDeleted     = "User deleted successfully"
 	SuccessUserFollowed    = "Users followed successfully"
-	SuccessUserUnfollowed  = "Users followed successfully"
-	SuccessPasswordUpdated = "Users followed successfully"
+	SuccessUserUnfollowed  = "Users unfollowed successfully"
+	SuccessPasswordUpdated = "Password updates successfully"
 
 	DBHost       = "DB_HOST"
 	DBPort       = "DB_PORT"

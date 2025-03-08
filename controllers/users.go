@@ -192,7 +192,7 @@ func (ctrl *UserController) GetFollowers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user_ids": followers})
+	c.JSON(http.StatusOK, gin.H{"followers": followers})
 }
 
 func (ctrl *UserController) GetFollowing(c *gin.Context) {
@@ -211,5 +211,5 @@ func (ctrl *UserController) GetFollowing(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user_ids": following})
+	c.JSON(http.StatusOK, gin.H{"followings": following})
 }
