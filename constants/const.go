@@ -8,4 +8,31 @@ const (
 	ErrFailedToHashPassword  = "failed to hash password"
 	ErrFailedToGenerateToken = "failed to generate token"
 	ErrInternalServerError   = "internal server error"
+	ErrInvalidCredentials    = "invalid email or password"
+	ErrInvalidToken          = "invalid token"
+	ErrTokenExpired          = "token expired"
+	ErrInvalidPassword       = "invalid password"
+	ErrRecordNotFound        = "record not found"
+
+	ErrInvalidMaritalStatus = "invalid marital status value"
+	ErrInvalidGenderValue   = "invalid gender value"
+
+	SuccessLogOut = "Successfully logged out"
+
+	DBHost     = "DB_HOST"
+	DBPort     = "DB_PORT"
+	DBUser     = "DB_USER"
+	DBPassword = "DB_PASSWORD"
+	DBName     = "DB_NAME"
+	DBSSLMode  = "DB_SSL"
+	ServerPort = "SERVER_PORT"
+	SecretKey  = "SECRET_KEY"
+	Domain     = "Domain"
+
+	Male    = "male"
+	Female  = "female"
+	Other   = "other"
+	Unknown = "unknown"
+	Single  = "single"
+	Married = "married"
 )

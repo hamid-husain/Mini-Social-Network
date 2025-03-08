@@ -9,6 +9,8 @@ import (
 	"mini-social-network/models"
 	"mini-social-network/serializers"
 	"mini-social-network/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -26,14 +28,14 @@ func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serial
 	var err error
 
 	switch req.UserDetails.Gender {
-	case "male":
+	case constants.Male:
 		gender = 1
-	case "female":
+	case constants.Female:
 		gender = 2
-	case "other":
+	case constants.Other:
 		gender = 3
 	default:
-		err = errors.New("invalid gender value")
+		err = errors.New(constants.ErrInvalidGenderValue)
 	}
 
 	if err != nil {
@@ -42,12 +44,12 @@ func (s *Service) CreateUserWithDetails(req *serializers.SignUpRequest) (*serial
 	}
 
 	switch req.UserDetails.MaritalStatus {
-	case "single":
+	case constants.Single:
 		maritalStatus = 1
-	case "married":
+	case constants.Married:
 		maritalStatus = 2
 	default:
-		err = errors.New("invalid marital status value")
+		err = errors.New(constants.ErrInvalidMaritalStatus)
 	}
 
 	if err != nil {
@@ -179,4 +181,20 @@ func SaveResidentialDetail(tx *gorm.DB, resident *models.ResidentialDetail) erro
 	}
 
 	return nil
+}
+
+func (s *Service) VerifyUserCredentials(email, password string) (*models.User, error) {
+	var user models.User
+	if err := s.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		if err.Error() == constants.ErrRecordNotFound {
+			return nil, errors.New(constants.ErrUserNotFound)
+		}
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, errors.New(constants.ErrInvalidPassword)
+	}
+
+	return &user, nil
 }

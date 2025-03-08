@@ -1,6 +1,7 @@
 package serializers
 
 import (
+	"mini-social-network/constants"
 	"mini-social-network/models"
 )
 
@@ -26,6 +27,23 @@ type UserDetailsResponse struct {
 	OfficeDetails      []OfficeDetailsResponse      `json:"office_details"`
 }
 
+type UserLoginResponse struct {
+	ID           uint   `json:"id"`
+	Email        string `json:"email"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	LastModified string `json:"last_modified"`
+}
+
+func SerializeUserLoginResponse(user models.User) UserLoginResponse {
+	return UserLoginResponse{
+		ID:           user.ID,
+		Email:        user.Email,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		LastModified: user.UpdatedAt.String(),
+	}
+}
 func SerializeResponse(user models.User, residents []models.ResidentialDetail, offices []models.OfficeDetail) UserDetailsResponse {
 	var residentialDetails []ResidentialDetailsResponse
 	for _, resident := range residents {
@@ -60,23 +78,23 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 	var gender string
 	switch user.Gender {
 	case 1:
-		gender = "male"
+		gender = constants.Male
 	case 2:
-		gender = "female"
+		gender = constants.Female
 	case 3:
-		gender = "other"
+		gender = constants.Other
 	default:
-		gender = "unknown"
+		gender = constants.Unknown
 	}
 
 	var maritalStatus string
 	switch user.MaritalStatus {
 	case 1:
-		maritalStatus = "single"
+		maritalStatus = constants.Single
 	case 2:
-		maritalStatus = "married"
+		maritalStatus = constants.Married
 	default:
-		maritalStatus = "unknown"
+		maritalStatus = constants.Unknown
 	}
 
 	return UserDetailsResponse{

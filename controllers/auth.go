@@ -34,3 +34,37 @@ func CreateUser(service *services.Service) gin.HandlerFunc {
 		c.JSON(http.StatusCreated, response)
 	}
 }
+
+func Login(service *services.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req serializers.LoginRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusUnprocessableEntity, utils.ParseValidationErrors(err))
+			return
+		}
+
+		user, err := service.VerifyUserCredentials(req.Email, req.Password)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": constants.ErrInvalidCredentials})
+			return
+		}
+
+		token, expiryTime, err := utils.GenerateJWT(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": constants.ErrFailedToGenerateToken})
+			return
+		}
+
+		bearerToken := "Bearer " + token
+
+		userResponse := serializers.SerializeUserLoginResponse(*user)
+		tokenResponse := serializers.SerializeToken(bearerToken, expiryTime)
+		response := serializers.SerializeLoginResponse(userResponse, tokenResponse)
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+func Logout(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": constants.SuccessLogOut})
+}
