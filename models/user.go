@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 
 	"fmt"
@@ -23,6 +25,7 @@ type User struct {
 }
 
 func (u *User) SetGender(genderStr string) error {
+	genderStr = strings.ToLower(genderStr)
 	switch genderStr {
 	case constants.Male:
 		u.Gender = constants.GenderMale
@@ -37,6 +40,7 @@ func (u *User) SetGender(genderStr string) error {
 }
 
 func (u *User) SetMaritalStatus(maritalStatus string) error {
+	maritalStatus = strings.ToLower(maritalStatus)
 	switch maritalStatus {
 	case constants.Single:
 		u.MaritalStatus = constants.MaritalStatusSingle
