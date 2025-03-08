@@ -1,16 +1,18 @@
 package serializers
 
 import (
+	"time"
+
 	"mini-social-network/constants"
 	"mini-social-network/models"
 )
 
 type UserDetailsInput struct {
-	FirstName          string                  `json:"first_name" binding:"required"`
-	LastName           string                  `json:"last_name"`
+	FirstName          string                  `json:"first_name" binding:"required,max=60"`
+	LastName           string                  `json:"last_name" binding:"max=60"`
 	DateOfBirth        string                  `json:"date_of_birth" binding:"required,valid_dob"`
-	Gender             string                  `json:"gender" binding:"required, oneof=male female other"`
-	MaritalStatus      string                  `json:"marital_status" binding:"required, oneof=single married"`
+	Gender             string                  `json:"gender" binding:"required,gender"`
+	MaritalStatus      string                  `json:"marital_status" binding:"required,maritalstatus"`
 	ResidentialDetails ResidentialDetailsInput `json:"residential_details"`
 	OfficeDetails      OfficeDetailsInput      `json:"office_details"`
 }
@@ -33,6 +35,32 @@ type UserLoginResponse struct {
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
 	LastModified string `json:"last_modified"`
+}
+
+type DeleteUserResponse struct {
+	Message string              `json:"message"`
+	User    UserDetailsResponse `json:"user"`
+}
+
+type GetUserResponse struct {
+	ID          uint                `json:"id"`
+	UserID      uint                `json:"user_id"`
+	Email       string              `json:"email"`
+	UpdatedAt   time.Time           `json:"last_modified"`
+	UserDetails UserDetailsResponse `json:"user_details"`
+}
+
+type ListUserResponse struct {
+	UserId uint   `json:"userId"`
+	Email  string `json:"email"`
+}
+
+type UpdateUserRequest struct {
+	FirstName     string `json:"first_name,omitempty" binding:"required,max=60"`
+	LastName      string `json:"last_name" binding:"max=60"`
+	DateOfBirth   string `json:"date_of_birth,omitempty" binding:"valid_dob"`
+	Gender        string `json:"gender,omitempty" binding:"gender"`
+	MaritalStatus string `json:"marital_status,omitempty" binding:"maritalstatus"`
 }
 
 func SerializeUserLoginResponse(user models.User) UserLoginResponse {
@@ -108,4 +136,32 @@ func SerializeResponse(user models.User, residents []models.ResidentialDetail, o
 		ResidentialDetails: residentialDetails,
 		OfficeDetails:      officeDetails,
 	}
+}
+
+func SerializeDeleteUserResponse(user models.User, userResponse UserDetailsResponse) DeleteUserResponse {
+	return DeleteUserResponse{
+		Message: constants.SuccessUserDeleted,
+		User:    userResponse,
+	}
+}
+
+func SerializeGetUserResponse(user models.User, userResponse UserDetailsResponse) GetUserResponse {
+	return GetUserResponse{
+		ID:          user.ID,
+		UserID:      user.ID,
+		Email:       user.Email,
+		UpdatedAt:   user.UpdatedAt,
+		UserDetails: userResponse,
+	}
+}
+
+func SerializeListUser(users []models.User) []ListUserResponse {
+	var userResponses []ListUserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, ListUserResponse{
+			UserId: user.ID,
+			Email:  user.Email,
+		})
+	}
+	return userResponses
 }

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -102,39 +101,4 @@ func ParseValidationErrors(err error) map[string][]string {
 	}
 
 	return validationErrors
-}
-
-const MaxAgeLimit = 100
-
-func ValidateDOB(fl validator.FieldLevel) bool {
-	dobStr := fl.Field().String()
-	const layout = "2006-01-02"
-
-	dob, err := time.Parse(layout, dobStr)
-	if err != nil {
-		return false
-	}
-
-	today := time.Now()
-
-	if dob.After(today) {
-		return false
-	}
-
-	age := today.Year() - dob.Year()
-
-	if today.YearDay() < dob.YearDay() {
-		age--
-	}
-
-	if age > MaxAgeLimit {
-		return false
-	}
-
-	return true
-}
-
-func RegisterCustomValidators(validate *validator.Validate) {
-	validatorEngine := binding.Validator.Engine().(*validator.Validate)
-	validatorEngine.RegisterValidation("valid_dob", ValidateDOB)
 }

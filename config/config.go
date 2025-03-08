@@ -32,16 +32,16 @@ func LoadConfig() {
 	}
 
 	AppConfig = Config{
-		DBHost:        viper.GetString("DB_HOST"),
-		DBPort:        viper.GetInt("DB_PORT"),
-		DBUser:        viper.GetString("DB_USER"),
-		DBPassword:    viper.GetString("DB_PASSWORD"),
-		DBName:        viper.GetString("DB_NAME"),
-		DBSSLMode:     viper.GetString("DB_SSL"),
-		ServerPort:    viper.GetString("SERVER_PORT"),
-		SecretKey:     viper.GetString("SECRET_KEY"),
+		DBHost:        viper.GetString(constants.DBHost),
+		DBPort:        viper.GetInt(constants.DBPort),
+		DBUser:        viper.GetString(constants.DBUser),
+		DBPassword:    viper.GetString(constants.DBPassword),
+		DBName:        viper.GetString(constants.DBName),
+		DBSSLMode:     viper.GetString(constants.DBSSLMode),
+		ServerPort:    viper.GetString(constants.ServerPort),
+		SecretKey:     viper.GetString(constants.SecretKey),
 		Domain:        viper.GetString(constants.Domain),
-		MigrationsDir: viper.GetString("MIGRATION_DIR"),
+		MigrationsDir: viper.GetString(constants.MigrationDir),
 	}
 
 	log.Printf("Config Loaded: %+v\n", AppConfig)

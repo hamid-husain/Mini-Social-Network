@@ -1,7 +1,12 @@
 package models
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
+
+	"fmt"
+	"mini-social-network/constants"
 )
 
 type User struct {
@@ -17,4 +22,54 @@ type User struct {
 	ResidentialDetails []ResidentialDetail `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Following          []UserFollowing     `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Followers          []UserFollowing     `gorm:"foreignKey:FollowerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+func (u *User) SetGender(genderStr string) error {
+	genderStr = strings.ToLower(genderStr)
+	switch genderStr {
+	case constants.Male:
+		u.Gender = constants.GenderMale
+	case constants.Female:
+		u.Gender = constants.GenderFemale
+	case constants.Other:
+		u.Gender = constants.GenderOther
+	default:
+		return fmt.Errorf("invalid gender value: %s", genderStr)
+	}
+	return nil
+}
+
+func (u *User) SetMaritalStatus(maritalStatus string) error {
+	maritalStatus = strings.ToLower(maritalStatus)
+	switch maritalStatus {
+	case constants.Single:
+		u.MaritalStatus = constants.MaritalStatusSingle
+	case constants.Married:
+		u.MaritalStatus = constants.MaritalStatusMarried
+	default:
+		return fmt.Errorf("invalid marital_status value: %s", maritalStatus)
+	}
+
+	return nil
+}
+
+func (u *User) GetGender() string {
+	switch u.Gender {
+	case 1:
+		return constants.Male
+	case 2:
+		return constants.Female
+	}
+	return constants.ErrInvalidGenderValue
+}
+
+func (u *User) GetMaritalStatus() string {
+	switch u.MaritalStatus {
+	case 1:
+		return constants.Single
+	case 2:
+		return constants.Married
+	}
+
+	return constants.ErrInvalidMaritalStatus
 }
