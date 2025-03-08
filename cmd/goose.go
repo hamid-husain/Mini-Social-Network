@@ -1,17 +1,17 @@
 package main
 
 import (
+	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
+
 	"context"
 	"flag"
 	"fmt"
 	"log"
-	"mini-social-network/config"
 	"os"
 
+	"mini-social-network/config"
 	_ "mini-social-network/db/migrations"
-
-	_ "github.com/lib/pq"
-	"github.com/pressly/goose/v3"
 )
 
 var (
