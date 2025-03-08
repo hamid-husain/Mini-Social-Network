@@ -64,6 +64,10 @@ func (s *UserService) UpdatePasswordByID(userID uint, req serializers.PasswordRe
 		return errors.NewAPIError(constants.ErrInvalidOldPassword, http.StatusBadRequest)
 	}
 
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.NewPassword)); err == nil {
+		return errors.NewAPIError(constants.ErrOldPassCantBeNewPass, http.StatusBadRequest)
+	}
+
 	newPasswordHash, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
 		return errors.NewAPIError(constants.ErrFailedToHashPassword, http.StatusInternalServerError)
@@ -192,6 +196,7 @@ func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.A
 		}
 	}()
 
+	var follow []models.UserFollowing
 	for _, followerID := range followerIDs {
 
 		if userID == followerID {
@@ -200,7 +205,6 @@ func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.A
 		}
 
 		err := s.checkIfUserExists(followerID)
-
 		if err != nil {
 			tx.Rollback()
 			if err == gorm.ErrRecordNotFound {
@@ -209,21 +213,16 @@ func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.A
 			return errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError)
 		}
 
-		var follow models.UserFollowing
-		err = tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&follow).Error
+		err = tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).First(&models.UserFollowing{}).Error
 
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 
-				follow = models.UserFollowing{
+				follow = append(follow, models.UserFollowing{
 					UserID:     userID,
 					FollowerID: followerID,
-				}
+				})
 
-				if err := tx.Create(&follow).Error; err != nil {
-					tx.Rollback()
-					return errors.NewAPIError(constants.ErrFailedToFollow, http.StatusInternalServerError)
-				}
 			} else {
 				tx.Rollback()
 				return errors.NewAPIError(constants.ErrFailedToCheckFollowing, http.StatusInternalServerError)
@@ -231,6 +230,13 @@ func (s *UserService) FollowUsersByID(userID uint, followerIDs []uint) *errors.A
 		} else {
 			tx.Rollback()
 			return errors.NewAPIError(fmt.Sprintf("User with ID %d is already following user with ID %d", userID, followerID), http.StatusBadRequest)
+		}
+	}
+
+	if len(follow) > 0 {
+		if err := tx.CreateInBatches(follow, 100).Error; err != nil {
+			tx.Rollback()
+			return errors.NewAPIError(constants.ErrFailedToFollow, http.StatusInternalServerError)
 		}
 	}
 
@@ -250,6 +256,7 @@ func (s *UserService) UnfollowUsersByID(userID uint, followerIDs []uint) *errors
 		}
 	}()
 
+	var unfollow []uint
 	for _, followerID := range followerIDs {
 
 		err := s.checkIfUserExists(followerID)
@@ -272,7 +279,11 @@ func (s *UserService) UnfollowUsersByID(userID uint, followerIDs []uint) *errors
 			return errors.NewAPIError(constants.ErrFailedToUnfollow, http.StatusInternalServerError)
 		}
 
-		if err := tx.Where("user_id = ? AND follower_id = ? AND deleted_at IS NULL", userID, followerID).Delete(&models.UserFollowing{}).Error; err != nil {
+		unfollow = append(unfollow, userFollowing.ID)
+	}
+
+	if len(unfollow) > 0 {
+		if err := tx.Delete(&models.UserFollowing{}, "id IN (?)", unfollow).Error; err != nil {
 			tx.Rollback()
 			return errors.NewAPIError(constants.ErrFailedToUnfollow, http.StatusInternalServerError)
 		}
@@ -289,7 +300,7 @@ func (s *UserService) GetFollowersByID(userID uint) ([]models.User, *errors.APIE
 	var follower []models.User
 	err := s.DB.Model(&models.User{}).
 		Joins("JOIN user_followings ON user_followings.user_id = users.id").
-		Where("user_followings.follower_id = ?", userID).
+		Where("user_followings.follower_id = ? AND user_followings.deleted_at IS NULL", userID).
 		Find(&follower).Error
 
 	if err != nil {
@@ -306,7 +317,7 @@ func (s *UserService) GetFollowing(userID uint) ([]models.User, *errors.APIError
 	var following []models.User
 	err := s.DB.Model(&models.User{}).
 		Joins("JOIN user_followings ON user_followings.follower_id = users.id").
-		Where("user_followings.user_id = ?", userID).
+		Where("user_followings.user_id = ? AND user_followings.deleted_at IS NULL", userID).
 		Find(&following).Error
 
 	if err != nil {

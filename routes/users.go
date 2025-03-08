@@ -13,13 +13,13 @@ func APIRoutes(router *gin.Engine, authService *services.AuthService, userServic
 	authCtrl := controllers.NewAuthController(authService)
 	userCtrl := controllers.NewUserController(userService)
 
-	users := router.Group("/api")
+	users := router.Group("/api/v1")
 	{
 		users.POST("/create", authCtrl.CreateUser)
 		users.POST("/login", authCtrl.Login)
 	}
 
-	protected := router.Group("/api")
+	protected := router.Group("/api/v1")
 	protected.Use(middleware.AuthMiddleware())
 	{
 		protected.GET("/logout", authCtrl.Logout)
