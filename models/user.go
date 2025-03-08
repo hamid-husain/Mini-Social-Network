@@ -52,3 +52,24 @@ func (u *User) SetMaritalStatus(maritalStatus string) error {
 
 	return nil
 }
+
+func (u *User) GetGender() string {
+	switch u.Gender {
+	case 1:
+		return constants.Male
+	case 2:
+		return constants.Female
+	}
+	return constants.ErrInvalidGenderValue
+}
+
+func (u *User) GetMaritalStatus() string {
+	switch u.MaritalStatus {
+	case 1:
+		return constants.Single
+	case 2:
+		return constants.Married
+	}
+
+	return constants.ErrInvalidMaritalStatus
+}

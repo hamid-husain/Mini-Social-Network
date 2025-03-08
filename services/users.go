@@ -296,7 +296,7 @@ func (s *UserService) UnfollowUsersByID(userID uint, followerIDs []uint) *errors
 	return nil
 }
 
-func (s *UserService) GetFollowersByID(userID uint) ([]models.User, *errors.APIError) {
+func (s *UserService) GetFollowersByID(userID uint) ([]serializers.FollowResponse, *errors.APIError) {
 	var follower []models.User
 	err := s.DB.Model(&models.User{}).
 		Joins("JOIN user_followings ON user_followings.user_id = users.id").
@@ -310,10 +310,12 @@ func (s *UserService) GetFollowersByID(userID uint) ([]models.User, *errors.APIE
 		return nil, errors.NewAPIError(err.Error(), http.StatusInternalServerError)
 	}
 
-	return follower, nil
+	followers := serializers.SerializeFollowResponse(follower)
+
+	return followers, nil
 }
 
-func (s *UserService) GetFollowing(userID uint) ([]models.User, *errors.APIError) {
+func (s *UserService) GetFollowing(userID uint) ([]serializers.FollowResponse, *errors.APIError) {
 	var following []models.User
 	err := s.DB.Model(&models.User{}).
 		Joins("JOIN user_followings ON user_followings.follower_id = users.id").
@@ -327,5 +329,7 @@ func (s *UserService) GetFollowing(userID uint) ([]models.User, *errors.APIError
 		return nil, errors.NewAPIError(err.Error(), http.StatusInternalServerError)
 	}
 
-	return following, nil
+	followings := serializers.SerializeFollowResponse(following)
+
+	return followings, nil
 }
