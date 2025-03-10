@@ -19,6 +19,18 @@ func NewUserController(userService *services.UserService) *UserController {
 	return &UserController{UserService: userService}
 }
 
+type UserControllerInt interface {
+	ListUsers(c *gin.Context)
+	GetUser(c *gin.Context)
+	DeleteUser(c *gin.Context)
+	UpdatePassword(c *gin.Context)
+	UpdateUser(c *gin.Context)
+	FollowUser(c *gin.Context)
+	UnfollowUser(c *gin.Context)
+	GetFollowers(c *gin.Context)
+	GetFollowing(c *gin.Context)
+}
+
 func (ctrl *UserController) ListUsers(c *gin.Context) {
 	response, err := ctrl.UserService.ListUsers()
 	if err != nil {
