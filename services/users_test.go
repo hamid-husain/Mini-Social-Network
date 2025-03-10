@@ -1,12 +1,16 @@
 package services
 
 import (
+	"net/http"
+
+	"github.com/stretchr/testify/assert"
+
+	"testing"
+
+	"mini-social-network/constants"
 	"mini-social-network/errors"
 	"mini-social-network/mocks"
 	"mini-social-network/serializers"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUserServiceInt(t *testing.T) {
@@ -30,13 +34,13 @@ func TestUserServiceInt(t *testing.T) {
 	})
 
 	t.Run("Test GetUserByID - Error", func(t *testing.T) {
-		mockService.On("GetUserByID", userID).Return(nil, errors.NewAPIError("User not found", 404))
+		mockService.On("GetUserByID", userID).Return(nil, errors.NewAPIError(constants.ErrUserNotFound, http.StatusNotFound))
 
 		response, err := mockService.GetUserByID(userID)
 
 		assert.Nil(t, response)
 		assert.NotNil(t, err)
-		assert.Equal(t, "User not found", err.Error())
+		assert.Equal(t, constants.ErrUserNotFound, err.Error())
 
 		mockService.AssertExpectations(t)
 	})
@@ -57,13 +61,13 @@ func TestUserServiceInt(t *testing.T) {
 	})
 
 	t.Run("Test ListUsers - Error", func(t *testing.T) {
-		mockService.On("ListUsers").Return(nil, errors.NewAPIError("Failed to retrieve users", 500))
+		mockService.On("ListUsers").Return(nil, errors.NewAPIError(constants.ErrFailedToRetrieveUser, http.StatusInternalServerError))
 
 		response, err := mockService.ListUsers()
 
 		assert.Nil(t, response)
 		assert.NotNil(t, err)
-		assert.Equal(t, "Failed to retrieve users", err.Message)
+		assert.Equal(t, constants.ErrFailedToRetrieveUser, err.Message)
 
 		mockService.AssertExpectations(t)
 	})
@@ -109,7 +113,7 @@ func TestUserServiceInt(t *testing.T) {
 
 		assert.Nil(t, response)
 		assert.NotNil(t, err)
-		assert.Equal(t, "Failed to delete user", err.Message)
+		assert.Equal(t, "Failed to delete user", err.Error())
 
 		mockService.AssertExpectations(t)
 	})
@@ -138,7 +142,7 @@ func TestUserServiceInt(t *testing.T) {
 
 		assert.Nil(t, response)
 		assert.NotNil(t, err)
-		assert.Equal(t, "Failed to update user", err.Message)
+		assert.Equal(t, "Failed to update user", err.Error())
 
 		mockService.AssertExpectations(t)
 	})
