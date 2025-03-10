@@ -24,6 +24,13 @@ func NewAuthService(db *gorm.DB) *AuthService {
 	return &AuthService{DB: db}
 }
 
+type AuthServiceInt interface {
+	CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error)
+	UpdateUser(user *models.User) error
+	LoginHandler(req serializers.LoginRequest) (*serializers.LoginResponse, *apiError.APIError)
+	VerifyUserCredentials(email, password string) (*models.User, error)
+}
+
 func (s *AuthService) CreateUserWithDetails(req *serializers.SignUpRequest) (*serializers.SignUpResponse, error) {
 	tx := s.DB.Begin()
 

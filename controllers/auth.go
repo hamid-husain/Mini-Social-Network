@@ -19,6 +19,12 @@ func NewAuthController(authService *services.AuthService) *AuthController {
 	return &AuthController{AuthService: authService}
 }
 
+type AuthControllerInt interface {
+	CreateUser(c *gin.Context)
+	Login(c *gin.Context)
+	Logout(c *gin.Context)
+}
+
 func (ctrl *AuthController) CreateUser(c *gin.Context) {
 	var req serializers.SignUpRequest
 

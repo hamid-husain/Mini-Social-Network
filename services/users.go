@@ -18,6 +18,19 @@ type UserService struct {
 	DB *gorm.DB
 }
 
+type UserServiceInt interface {
+	GetUserByID(userID uint) (*serializers.GetUserResponse, *errors.APIError)
+	ListUsers() ([]serializers.ListUserResponse, *errors.APIError)
+	UpdatePasswordByID(userID uint, req serializers.PasswordRequest)
+	DeleteUserByID(userID uint) (*serializers.DeleteUserResponse, *errors.APIError)
+	UpdateUserByID(userID uint, req *serializers.UpdateUserRequest) (*serializers.GetUserResponse, *errors.APIError)
+	checkIfUserExists(userID uint) error
+	FollowUsersByID(userID uint, followerIDs []uint) *errors.APIError
+	UnfollowUsersByID(userID uint, followerIDs []uint) *errors.APIError
+	GetFollowersByID(userID uint) ([]serializers.FollowResponse, *errors.APIError)
+	GetFollowing(userID uint) ([]serializers.FollowResponse, *errors.APIError)
+}
+
 func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{DB: db}
 }
