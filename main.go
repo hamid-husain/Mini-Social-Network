@@ -5,6 +5,7 @@ import (
 	"log"
 	"mini-social-network/config"
 	"mini-social-network/db"
+	"mini-social-network/middleware"
 	"mini-social-network/routes"
 	"mini-social-network/services"
 	"mini-social-network/utils"
@@ -26,6 +27,8 @@ func main() {
 	router := gin.Default()
 
 	routes.APIRoutes(router, service)
+
+	router.Use(middleware.CORSMiddleware())
 
 	if err := router.Run(":" + config.AppConfig.ServerPort); err != nil {
 		log.Fatal("Failed to start server: ", err)
